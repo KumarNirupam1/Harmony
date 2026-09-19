@@ -13,7 +13,10 @@
 FROM public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 AS adapter
 
 # ---- step 2: runtime ----
-FROM public.ecr.aws/lambda/python:3.12
+# Plain Python image (NOT public.ecr.aws/lambda/python:*): the AWS base image
+# forces a Lambda handler as CMD's first arg and conflicts with LWA. LWA talks
+# to the Runtime API itself, so any HTTP server image works.
+FROM python:3.12
 
 COPY --from=adapter /lambda-adapter /opt/extensions/lambda-adapter
 
