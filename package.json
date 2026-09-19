@@ -1,12 +1,16 @@
 {
-  "name": "youtube-creator-helper",
-  "version": "0.1.0",
+"name": "aqualign",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "dev:api": "bash infra/scripts/dev.sh api",
+    "seed:data": "bash infra/scripts/dev.sh seed-data",
+    "deploy:api": "bash infra/scripts/deploy-api.sh",
+    "deploy:web": "bash infra/scripts/deploy-web.sh"
   },
   "dependencies": {
     "next": "16.3.5",

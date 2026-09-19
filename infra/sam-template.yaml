@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Aqualign — Ship It stack. Serverless ocean-cleanup mission planner.
+  API (Lambda container + API Gateway HTTP API), DynamoDB mission store, and an
+  S3 bucket for ocean field datasets & exported mission data.
+
+Globals:
+  Function:
+    Timeout: 600
+    MemorySize: 1536
+    Architectures: [x86_64]
+    Environment:
+      Variables:
+        AQUALIGN_BUCKET: !Ref DataBucket
+        AQUALIGN_TABLE: !Ref MissionsTable
+
+Parameters:
+  ImageUri:
+    Type: String
+    Description: ECR container image URI for the Aqualign simulation function.
+    Default: ""
+
+Resources:
+  # ---- Simulation API (FastAPI via Lambda Web Adapter) ----
+  MissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      PackageType: Image
+      ImageUri: !If [UseImageUri, !Ref ImageUri, !Ref AWS::NoValue]
+      Events:
+        HttpApi:
+          Type: HttpApi
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MissionsTable
+        - S3ReadPolicy:
+            BucketName: !Ref DataBucket
+        - S3WritePolicy:
+            BucketName: !Ref DataBucket
+        - CloudWatchLambdaInsightsExecutionRolePolicy: {}
+    Metadata:
+      DockerContext: ../../
+      Dockerfile: api/Dockerfile
+
+  # ---- Mission history store ----
+  MissionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: missionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: missionId
+          KeyType: HASH
+
+  # ---- Ocean field datasets & exports ----
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+
+Conditions:
+  UseImageUri: !Not [!Equals [!Ref ImageUri, ""]]
+
+Outputs:
+  ApiUrl:
+    Description: Base URL of the Aqualign mission API (test with /health).
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  MissionsTableName:
+    Description: DynamoDB table storing past missions.
+    Value: !Ref MissionsTable
+  DataBucketName:
+    Description: S3 bucket for ocean field data.
+    Value: !Ref DataBucket
