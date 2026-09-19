@@ -60,6 +60,24 @@ Resources:
         AllowHeaders: ["*"]
         ExposeHeaders: ["*"]
 
+  # Public Function URL access needs BOTH lambda:InvokeFunctionUrl AND
+  # lambda:InvokeFunction grants (403 AccessDenied otherwise — see
+  # aws-lambda-developer-guide#494). Managed by CloudFormation so they survive
+  # future deploys.
+  MissionFunctionUrlAccessPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref MissionFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+  MissionFunctionUrlInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref MissionFunction
+      Action: lambda:InvokeFunction
+      Principal: "*"
+
   # ---- Mission history store ----
   MissionsTable:
     Type: AWS::DynamoDB::Table
