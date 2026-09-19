@@ -33,7 +33,7 @@ export default function Architecture() {
                         ],
                         [
                             "Judge",
-                            "Metrics are server-computed: recovered debris, fuel, efficiency gain, fuel saved. The UI only counts them up.",
+                            "Metrics are server-computed: recovered debris, control effort, efficiency gain, effort saved. The UI only counts them up.",
                         ],
                     ].map(([title, body], i) => (
                         <li key={title} className="soft-card p-6">

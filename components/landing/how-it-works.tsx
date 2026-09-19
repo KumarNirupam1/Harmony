@@ -74,13 +74,13 @@ export function HowItWorks() {
                 <span className="flex items-center gap-2">
                   <i className="h-2 w-2 rounded-full bg-accent" /> Capture vs patrol
                 </span>
-                +50%
+                +17%
               </li>
               <li className="flex items-center justify-between">
                 <span className="flex items-center gap-2">
-                  <i className="h-2 w-2 rounded-full bg-accent-2" /> Fuel riding the flow
+                  <i className="h-2 w-2 rounded-full bg-accent-2" /> Control effort saved
                 </span>
-                ≤ 60%
+                63%
               </li>
               <li className="flex items-center justify-between">
                 <span className="flex items-center gap-2">

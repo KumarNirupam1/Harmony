@@ -49,8 +49,7 @@ api/                  FastAPI service + engine
 app/  components/  lib/   Next.js 16 static-export UI
 data/                     ocean current .npz (u,v,x,y) + sample responses
 infra/                    SAM template + deploy scripts (API, web)
-docs/                     product spec, API contract, task plan, judging, video script
-archive/                  original upstream Aqualign (provenance)
+docs/                     remaining work to submission (docs/TODO.md)
 ```
 
 ## Run locally
@@ -113,10 +112,10 @@ CORS-open. No duplicated claims: only what you see here is what we say we built.
   computation graph means the *gradient* itself plans routes — metrics are
   computed, not imputed.
 - **Capture objectives need care**: a soft Gaussian collection reward ≠ a hard
-  capture count; the gap between the two is measurable (see `docs/TASKS.md` §22).
+  capture count; the gap between the two is measurable.
 - **Serverless + heavy runtime works**: a PyTorch CPU container behind Lambda's
   Web Adapter holds ~2–5 s mission solves; no GPU, no EC2.
 - **Static export keeps the UI safe**: S3 + CloudFront for the frontend means no
   origin server to babysit on demo day.
 
-See `docs/PRODUCT.md` and `docs/ARCHITECTURE.md` for the full write-up.
+See `docs/TODO.md` for everything left before submission.

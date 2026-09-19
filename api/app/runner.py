@@ -79,7 +79,7 @@ def _simulate_strategy(
     grid_w = int(field.x_max) + 1
     grid_h = int(field.y_max) + 1
     covered = torch.zeros(grid_w, grid_h, dtype=torch.bool, device=d_pos.device)
-    captures_over_time: list = []
+    captures_over_time: list = [0]
     current_drift = 0.0
     first_capture = None
 
@@ -110,7 +110,7 @@ def _simulate_strategy(
     return {
         "collected": int(captured_mask.sum().item()),
         "control_effort": float(torch.sum(controls ** 2).item()),
-        "captures_over_time": captures_over_time,   # cumulative per frame (T)
+        "captures_over_time": captures_over_time,   # cumulative per frame (T+1, starts at 0)
         "first_capture_hour": first_capture,
         "coverage_pct": round(coverage_pct, 2),
         "current_assisted_distance": round(current_drift, 2),  # ocean drift, domain units

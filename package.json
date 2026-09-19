@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint app components lib next.config.ts",
     "dev:api": "bash infra/scripts/dev.sh api",
     "seed:data": "bash infra/scripts/dev.sh seed-data",
     "deploy:api": "bash infra/scripts/deploy-api.sh",

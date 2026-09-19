@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Footer } from "@/components/landing/footer";
 import { Navbar } from "@/components/landing/navbar";
 import { clearMissions, loadMissions, type SavedMission } from "@/lib/history";
+import type { MissionMetrics } from "@/lib/types";
 
 export default function History() {
     const [rows, setRows] = useState<SavedMission[]>([]);
@@ -24,8 +25,8 @@ export default function History() {
                         </p>
                         <h1 className="font-display mt-2 text-5xl tracking-tight">Mission history</h1>
                         <p className="mt-3 max-w-lg text-sm text-muted">
-                            Runs are stored in this browser only. Replay uses the same seed and
-                            parameters — nothing is written from the client to DynamoDB yet.
+                            Every mission you run is saved server-side to DynamoDB and mirrored
+                            in this browser. Replay uses the same seed and parameters.
                         </p>
                     </div>
                     <button
@@ -57,8 +58,13 @@ export default function History() {
                                         {m.params.num_vessels} vessels · {m.params.horizon}h · seed {m.params.seed}
                                     </p>
                                     <p className="mt-1 text-xs text-muted">
-                                        {new Date(m.createdAt).toLocaleString()} · gain {m.metrics.efficiency_gain}% ·
-                                        effort saved {m.metrics.control_effort_saved_pct}%
+                                        {new Date(m.createdAt).toLocaleString()} · gain {m.metrics.efficiency_gain ?? 0}% ·
+                                        effort saved{" "}
+                                        {(m.metrics.control_effort_saved_pct ??
+                                            (m.metrics as MissionMetrics & { fuel_saved_pct?: number }).fuel_saved_pct ??
+                                            (m.metrics as MissionMetrics & { fuel_saved?: number }).fuel_saved ??
+                                            0)}
+                                        %
                                     </p>
                                 </div>
                                 <Link

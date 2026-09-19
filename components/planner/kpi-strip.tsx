@@ -40,17 +40,28 @@ export function KpiStrip({
   };
   active: boolean;
 }) {
-  const rec = useCount(metrics.optimized_collected, active);
-  const randRec = useCount(metrics.random_collected, active);
-  const effort = useCount(metrics.optimized_control_effort, active);
-  const randEffort = useCount(metrics.random_control_effort, active);
-  const gain = useCount(metrics.efficiency_gain, active);
-  const saved = useCount(metrics.control_effort_saved_pct, active);
+  const {
+    random_collected = 0,
+    optimized_collected = 0,
+    total_debris = 0,
+    random_control_effort = 0,
+    optimized_control_effort = 0,
+    control_effort_saved_pct = 0,
+    efficiency_gain = 0,
+    coverage_pct = 0,
+    first_capture_hour = null,
+  } = metrics;
+  const rec = useCount(optimized_collected, active);
+  const randRec = useCount(random_collected, active);
+  const effort = useCount(optimized_control_effort, active);
+  const randEffort = useCount(random_control_effort, active);
+  const gain = useCount(efficiency_gain, active);
+  const saved = useCount(control_effort_saved_pct, active);
 
   const cards = [
     {
       label: "Debris recovered",
-      value: `${Math.round(rec)} / ${metrics.total_debris}`,
+      value: `${Math.round(rec)} / ${total_debris}`,
       sub: `Random patrol ${Math.round(randRec)}`,
     },
     {
@@ -82,9 +93,9 @@ export function KpiStrip({
         ))}
       </div>
       <p className="mt-3 text-center text-xs text-muted">
-        {metrics.coverage_pct.toFixed(1)}% domain swept
-        {metrics.first_capture_hour != null
-          ? ` · first capture at hour ${metrics.first_capture_hour}`
+        {coverage_pct.toFixed(1)}% domain swept
+        {first_capture_hour != null
+          ? ` · first capture at hour ${first_capture_hour}`
           : ""}
       </p>
     </div>
