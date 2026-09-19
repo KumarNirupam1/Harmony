@@ -1,5 +1,5 @@
 """Fetch REAL ocean surface currents (NASA OSCAR via NOAA ERDDAP) and convert
-them to the Aqualign engine's .npz format (keys: u, v, x, y).
+them to the Harmony engine's .npz format (keys: u, v, x, y).
 
 The engine is dataset-agnostic — it only reads interpolated u/v arrays over a
 0..50 x 0..50 domain. This script downloads a region's average surface currents,
@@ -57,7 +57,7 @@ def _fetch_dataset(lon: tuple, lat: tuple) -> "xr.Dataset":
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Fetch real OSCAR currents -> Aqualign .npz")
+    parser = argparse.ArgumentParser(description="Fetch real OSCAR currents -> Harmony .npz")
     parser.add_argument("--region", choices=REGIONS, default="bay-of-bengal")
     parser.add_argument("--write", default="data/gulf_stream.npz")
     args = parser.parse_args()

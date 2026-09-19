@@ -1,4 +1,4 @@
-"""Aqualign mission API (FastAPI).
+"""Harmony mission API (FastAPI).
 
 Deployed on AWS as a Lambda container (see infra/sam-template.yaml) or run
 locally with:  uvicorn app.main:app --port 8000
@@ -36,7 +36,7 @@ class MissionRequest(BaseModel):
     boundary_penalty: bool = Field(False)
 
 
-app = FastAPI(title="Aqualign Ocean Cleanup API", version="1.0.0")
+app = FastAPI(title="Harmony Ocean Cleanup API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,12 +48,12 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "service": "aqualign-api"}
+    return {"status": "ok", "service": "harmony-api"}
 
 
 def _mission_table():
     """Return a DynamoDB table client, or None when persistence is unavailable."""
-    table_name = os.environ.get("AQUALIGN_TABLE")
+    table_name = os.environ.get("HARMONY_TABLE")
     if not table_name:
         return None
     try:

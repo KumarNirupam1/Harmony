@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Local dev helpers for Aqualign.
+# Local dev helpers for Harmony.
 set -e
 
 case "${1:-}" in
   api)
     echo "==> Running the FastAPI sim service locally on :8000"
-    echo "    (POST /mission) — from repo root, uses api/aqualign engine."
+    echo "    (POST /mission) — from repo root, uses api/harmony engine."
     (cd api && python -m uvicorn app.main:app --reload --port 8000)
     ;;
   seed-data)

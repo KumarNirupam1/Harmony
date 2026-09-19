@@ -1,6 +1,6 @@
 import type { MissionRequest, MissionMetrics } from "./types";
 
-const KEY = "aqualign-missions";
+const KEY = "harmony-missions";
 
 export type SavedMission = {
   id: string;

@@ -33,7 +33,7 @@ export function PlaygroundPreview() {
         Playground
       </p>
       <h2 className="font-display mt-2 text-center text-4xl tracking-tight sm:text-5xl">
-        Try Aqualign Live
+        Try Harmony Live
       </h2>
       <div className="soft-card mt-10 overflow-hidden p-3 sm:p-4">
         <div className="h-[380px] sm:h-[460px]">

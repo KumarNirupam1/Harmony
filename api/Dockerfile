@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
-# Aqualign API — runs as an AWS Lambda container image via the Lambda Web Adapter.
+# Harmony API — runs as an AWS Lambda container image via the Lambda Web Adapter.
 # Build from repo root so the ocean dataset can ship inside the image:
-#   docker build -t aqualign-api -f api/Dockerfile .
+#   docker build -t harmony-api -f api/Dockerfile .
 # Run locally (Build It / open-source path):
-#   docker run -p 9000:9000 aqualign-api
+#   docker run -p 9000:9000 harmony-api
 #
 # References:
 #   https://github.com/awslabs/aws-lambda-web-adapter
@@ -22,7 +22,7 @@ WORKDIR /var/task
 COPY api/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY api/aqualign ./aqualign
+COPY api/harmony ./harmony
 COPY api/app ./app
 
 # Ocean field dataset (also mirrored to S3 in production).

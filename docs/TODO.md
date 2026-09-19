@@ -21,7 +21,7 @@ Legend: `[x]` done · `[ ]` todo · `(owner)` who.
       `curl -X POST $API_URL/mission -H 'content-type: application/json' -d '{"seed":1,"iterations":200}'`
       → check `meta.missionId` exists and a row appeared in DynamoDB.
 - [ ] Give the copilot its key (gpt-4o-mini, server-side only):
-      `aws ssm put-parameter --name /aqualign/openai-key --type SecureString --value sk-...`
+      `aws ssm put-parameter --name /harmony/openai-key --type SecureString --value sk-...`
       then `curl -X POST $API_URL/api/explain` with a finished mission's
       params+metrics → expect `"source":"openai"`.
 - [ ] Deploy the web app with the API URL baked in at build time:
@@ -44,11 +44,11 @@ Legend: `[x]` done · `[ ]` todo · `(owner)` who.
       landing numbers before deploy.
 
 ### Verification before you push/commit
-- [ ] `python3 -m py_compile api/app/*.py api/aqualign/*.py api/tests/*.py`
+- [ ] `python3 -m py_compile api/app/*.py api/harmony/*.py api/tests/*.py`
 - [ ] `npx tsc --noEmit`  → 0 errors
 - [ ] `npm run lint`  → clean (scoped to source; see package.json)
 - [ ] `npm run build`  → 8 static routes exported
-- [ ] `bash -n infra/scripts/*.sh && docker build -t aqualign-api -f api/Dockerfile .`
+- [ ] `bash -n infra/scripts/*.sh && docker build -t harmony-api -f api/Dockerfile .`
       → image builds and `data/gulf_stream.npz` is inside (needed by the engine).
 
 ## P0 — Git / CI
@@ -67,7 +67,7 @@ Legend: `[x]` done · `[ ]` todo · `(owner)` who.
       (Add to `form`, send in `MissionRequest`, small preset chips + a boundary
       toggle; defaults unchanged.)
 - [ ] **Copilot panel** in the planner: `POST /api/explain` exists and is tested;
-      add a "Why did Aqualign win?" button → shows `explanation` +
+      add a "Why did Harmony win?" button → shows `explanation` +
       `source: openai|static`. Graceful offline fallback.
 - [ ] **History from DynamoDB**: `GET /api/missions` exists; `components/history`
       currently shows device-local rows only. Merge server rows in (dedupe on
@@ -77,7 +77,7 @@ Legend: `[x]` done · `[ ]` todo · `(owner)` who.
       NOT use `useSearchParams` without a `Suspense` boundary). Restore = fetch
       live mission or rebuild from seed params.
 - [ ] Landing: replace the default Next/Vercel SVGs in `public/` with the
-      Aqualign wave mark; add an OG image + metadata so share links look right.
+      Harmony wave mark; add an OG image + metadata so share links look right.
 - [ ] Planner copy check after all the above: objective label, boundary flag,
       copilot chip, "history is in DynamoDB" wording (already updated).
 

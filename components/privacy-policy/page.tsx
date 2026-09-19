@@ -8,8 +8,8 @@ export default function Privacy() {
             <main className="mx-auto w-full max-w-2xl flex-1 px-6 pt-20 pb-16">
                 <h1 className="font-display text-5xl tracking-tight">Privacy Policy</h1>
                 <p className="mt-6 text-sm leading-7 text-muted">
-                    Aqualign is a mission-planning UI. Visualization runs in your browser.
-                    When you press Run mission, fleet parameters are sent to the Aqualign API
+                    Harmony is a mission-planning UI. Visualization runs in your browser.
+                    When you press Run mission, fleet parameters are sent to the Harmony API
                     (`POST /mission`) so the physics engine can return trajectories and KPIs.
                     We do not ask for an account. Mission cards on the History page live in
                     `localStorage` on this device until you clear them.

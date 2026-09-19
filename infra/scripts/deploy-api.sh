@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# Deploy the Aqualign simulation API to AWS using SAM.
+# Deploy the Harmony simulation API to AWS using SAM.
 # Prereqs: AWS CLI + SAM CLI + Docker. Run once:  ./infra/scripts/deploy-api.sh
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-STACK_NAME="${STACK_NAME:-aqualign-api}"
+STACK_NAME="${STACK_NAME:-harmony-api}"
 REGION="${AWS_REGION:-$(aws configure get region || echo us-east-1)}"
+
+# Locate the SAM CLI even when it isn't on PATH yet (winget installs it here).
+if ! command -v sam >/dev/null 2>&1; then
+  export PATH="$PATH:/c/Program Files/Amazon/AWSSAMCLI/bin:/mnt/c/Program Files/Amazon/AWSSAMCLI/bin"
+fi
 
 echo "==> [1/3] sam build (container image via api/Dockerfile — first build pulls PyTorch, takes a while)"
 sam build --use-container

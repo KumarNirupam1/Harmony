@@ -1,6 +1,6 @@
 """Headless simulation runner.
 
-Reuses the Aqualign differentiable-physics engine (api/aqualign) and returns
+Reuses the Harmony differentiable-physics engine (api/harmony) and returns
 JSON-safe results so the web app can render animated trajectories and KPIs.
 """
 from __future__ import annotations
@@ -12,14 +12,14 @@ from typing import Dict
 
 import torch
 
-from aqualign.ocean_field import OceanField
-from aqualign.optimizer import RouteOptimizer
-from aqualign.particle_simulator import ParticleSimulator
+from harmony.ocean_field import OceanField
+from harmony.optimizer import RouteOptimizer
+from harmony.particle_simulator import ParticleSimulator
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_PATH = os.environ.get(
-    "AQUALIGN_DATA", str(REPO_ROOT / "data" / "gulf_stream.npz")
+    "HARMONY_DATA", str(REPO_ROOT / "data" / "gulf_stream.npz")
 )
 CAPTURE_RADIUS = 1.0
 
@@ -120,7 +120,7 @@ def _simulate_strategy(
 
 
 def run_mission(params: MissionParams = MissionParams()) -> Dict:
-    """Run Random Patrol vs Aqualign optimization. Returns JSON-safe result."""
+    """Run Random Patrol vs Harmony optimization. Returns JSON-safe result."""
     device = "cpu"
     dt = 1.0
     torch.manual_seed(params.seed)
@@ -139,7 +139,7 @@ def run_mission(params: MissionParams = MissionParams()) -> Dict:
     random_controls = torch.randn(steps, params.num_vessels, 2, device=device)
     random = _simulate_strategy(field, random_controls, 1.0, initial_vessels, debris, steps, dt)
 
-    # ---- Aqualign gradient optimization ----
+    # ---- Harmony gradient optimization ----
     weights = OBJECTIVES.get(params.objective, OBJECTIVES["balanced"])
     opt = RouteOptimizer(
         field,

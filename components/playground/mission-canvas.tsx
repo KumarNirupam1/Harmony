@@ -179,7 +179,7 @@ export function MissionCanvas({ mission, frame, className }: Props) {
         </div>
         <div className="mt-1 flex items-center gap-2">
           <span className="inline-block h-0.5 w-4 bg-foreground" />
-          Aqualign
+          Harmony
         </div>
       </div>
       <div className="pointer-events-none absolute bottom-4 left-4 rounded-full border border-border bg-panel/90 px-3 py-1.5 font-mono text-[11px]">

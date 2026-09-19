@@ -11,7 +11,8 @@ export default function History() {
     const [rows, setRows] = useState<SavedMission[]>([]);
 
     useEffect(() => {
-        setRows(loadMissions());
+        const raf = requestAnimationFrame(() => setRows(loadMissions()));
+        return () => cancelAnimationFrame(raf);
     }, []);
 
     return (

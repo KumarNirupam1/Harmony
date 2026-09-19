@@ -6,13 +6,16 @@ export function ThemeToggle() {
   const [dark, setDark] = useState(false);
 
   useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
+    const raf = requestAnimationFrame(() =>
+      setDark(document.documentElement.classList.contains("dark")),
+    );
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   function toggle() {
     const next = !document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("aqualign-theme", next ? "dark" : "light");
+    localStorage.setItem("harmony-theme", next ? "dark" : "light");
     setDark(next);
   }
 

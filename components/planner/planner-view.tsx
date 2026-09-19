@@ -82,7 +82,7 @@ export function PlannerView() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `aqualign-mission-${mission.params.seed}.json`;
+    a.download = `harmony-mission-${mission.params.seed}.json`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -114,7 +114,7 @@ export function PlannerView() {
               </p>
               <h1 className="font-display mt-1 text-4xl tracking-tight">Mission planner</h1>
               <p className="mt-2 max-w-xl text-sm text-muted">
-                Configure a fleet, run the differentiable solver, then scrub Aqualign
+                Configure a fleet, run the differentiable solver, then scrub Harmony
                 against a random patrol on the same current field.
               </p>
             </div>

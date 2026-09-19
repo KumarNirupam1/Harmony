@@ -8,7 +8,7 @@ archive
 infra
 # build context only needs api/ and data/
 api/app/__pycache__
-api/aqualign/__pycache__
+api/harmony/__pycache__
 **/__pycache__
 **/*.pyc
 *.md

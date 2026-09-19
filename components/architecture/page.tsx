@@ -12,7 +12,7 @@ export default function Architecture() {
                 </p>
                 <h1 className="font-display mt-2 text-5xl tracking-tight">Architecture</h1>
                 <p className="mt-4 text-muted leading-7">
-                    Aqualign turns debris cleanup from a line-of-sight chase into a
+                    Harmony turns debris cleanup from a line-of-sight chase into a
                     differentiable control problem. The browser never runs PyTorch — it posts a
                     mission, then paints the field, both strategies, and the KPIs.
                 </p>
@@ -29,7 +29,7 @@ export default function Architecture() {
                         ],
                         [
                             "Compare",
-                            "The response carries a 25×25 velocity sample plus random and Aqualign trajectories. The canvas scrubs them on the same gyre.",
+                            "The response carries a 25×25 velocity sample plus random and Harmony trajectories. The canvas scrubs them on the same gyre.",
                         ],
                         [
                             "Judge",

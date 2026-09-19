@@ -1,9 +1,9 @@
-"""Aqualign mission copilot.
+"""Harmony mission copilot.
 
 A tiny LLM sidecar that explains WHY the optimized route beat random patrol, in
 plain English for a non-technical judge. Uses a small managed model
 (gpt-4o-mini) via the OpenAI API; the key is stored server-side in AWS SSM
-Parameter Store (/aqualign/openai-key, SecureString) and is NEVER exposed to the
+Parameter Store (/harmony/openai-key, SecureString) and is NEVER exposed to the
 browser or the repo.
 
 Degrades gracefully: no key / no network / model error -> a deterministic
@@ -16,11 +16,11 @@ import os
 from functools import lru_cache
 from typing import Any, Dict, Optional
 
-SSM_PARAM_NAME = os.environ.get("AQUALIGN_OPENAI_KEY_SSM", "/aqualign/openai-key")
-MODEL = os.environ.get("AQUALIGN_LLM_MODEL", "gpt-4o-mini")
+SSM_PARAM_NAME = os.environ.get("HARMONY_OPENAI_KEY_SSM", "/harmony/openai-key")
+MODEL = os.environ.get("HARMONY_LLM_MODEL", "gpt-4o-mini")
 
 SYSTEM_PROMPT = (
-    "You are 'Aqualign', a mission planner for an ocean-cleanup fleet. "
+    "You are 'Harmony', a mission planner for an ocean-cleanup fleet. "
     "Explain IN 2-3 SHORT, PLAIN-ENGLISH SENTENCES why the optimized route "
     "outperformed a random patrol, using the numbers provided. Mention riding "
     "ocean currents rather than fighting them. Do not mention APIs, models, "

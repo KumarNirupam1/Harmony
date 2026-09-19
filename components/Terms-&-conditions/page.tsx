@@ -8,7 +8,7 @@ export default function Terms() {
             <main className="mx-auto w-full max-w-2xl flex-1 px-6 pt-20 pb-16">
                 <h1 className="font-display text-5xl tracking-tight">Terms of Service</h1>
                 <p className="mt-6 text-sm leading-7 text-muted">
-                    Aqualign is mission software for planning, not a navigation or autopilot
+                    Harmony is mission software for planning, not a navigation or autopilot
                     system. Routes are decision support. Local crews remain responsible for
                     seamanship, safety, and compliance with maritime law.
                 </p>

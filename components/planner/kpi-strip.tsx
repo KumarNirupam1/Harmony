@@ -6,8 +6,8 @@ function useCount(target: number, active: boolean) {
   const [value, setValue] = useState(0);
   useEffect(() => {
     if (!active) {
-      setValue(0);
-      return;
+      const raf = requestAnimationFrame(() => setValue(0));
+      return () => cancelAnimationFrame(raf);
     }
     const start = performance.now();
     let raf = 0;

@@ -1,4 +1,4 @@
-"""Smoke tests for the Aqualign backend contract (no AWS needed).
+"""Smoke tests for the Harmony backend contract (no AWS needed).
 
 These run a small mission (short horizon + few iterations) so CI stays fast,
 and assert the frozen API shape the frontend depends on.

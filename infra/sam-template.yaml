@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  Aqualign — Ship It stack. Serverless ocean-cleanup mission planner.
+  Harmony — Ship It stack. Serverless ocean-cleanup mission planner.
   API (Lambda container + API Gateway HTTP API), DynamoDB mission store, and an
   S3 bucket for ocean field datasets & exported mission data.
 
@@ -12,13 +12,13 @@ Globals:
     Architectures: [x86_64]
     Environment:
       Variables:
-        AQUALIGN_BUCKET: !Ref DataBucket
-        AQUALIGN_TABLE: !Ref MissionsTable
+        HARMONY_BUCKET: !Ref DataBucket
+        HARMONY_TABLE: !Ref MissionsTable
 
 Parameters:
   ImageUri:
     Type: String
-    Description: ECR container image URI for the Aqualign simulation function.
+    Description: ECR container image URI for the Harmony simulation function.
     Default: ""
 
 Resources:
@@ -42,7 +42,7 @@ Resources:
         - S3WritePolicy:
             BucketName: !Ref DataBucket
         - SSMParameterReadPolicy:
-            ParameterName: /aqualign/openai-key
+            ParameterName: /harmony/openai-key
         - CloudWatchLambdaInsightsExecutionRolePolicy: {}
     Metadata:
       DockerContext: ../../
@@ -74,7 +74,7 @@ Conditions:
 
 Outputs:
   ApiUrl:
-    Description: Base URL of the Aqualign mission API (test with /health).
+    Description: Base URL of the Harmony mission API (test with /health).
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
   MissionsTableName:
     Description: DynamoDB table storing past missions.

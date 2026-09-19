@@ -23,7 +23,7 @@ export function Navbar() {
             </svg>
           </span>
           <span className="text-[15px] leading-none font-semibold tracking-tight text-accent">
-            Aqualign
+            Harmony
           </span>
         </Link>
 

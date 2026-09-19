@@ -1,4 +1,4 @@
-# Aqualign — ride the current. waste nothing.
+# Harmony — ride the current. waste nothing.
 
 A serverless mission planner for ocean-cleanup fleets. A differentiable
 physics engine unrolls ocean advection (RK4) as a PyTorch computation graph and
@@ -23,7 +23,7 @@ API Gateway ──► Lambda container ──► PyTorch rollout (CPU)
 
 1. Configure a fleet (vessels, horizon, debris spread, seed).
 2. `POST /mission` → the engine runs **Random Patrol** (baseline) and
-   **Aqualign** (Adam over the full rollout) on the same currents.
+   **Harmony** (Adam over the full rollout) on the same currents.
 3. Replay both animated side-by-side; scrub the timeline; read KPIs:
    debris recovered, **control effort** used, efficiency gain, domain coverage,
    first-capture hour — plus a loss-over-iterations sparkline proving the
@@ -31,7 +31,7 @@ API Gateway ──► Lambda container ──► PyTorch rollout (CPU)
 
 Reference results (double-gyre benchmark, seed 42, 200 debris, 3 vessels, 72h):
 
-| Metric | Random patrol | Aqualign | Δ |
+| Metric | Random patrol | Harmony | Δ |
 | --- | --- | --- | --- |
 | Debris recovered | 6 | 7 | **+16.7%** |
 | Control effort | 450.4 | 164.2 | **−63.5%** |
@@ -41,7 +41,7 @@ Reference results (double-gyre benchmark, seed 42, 200 debris, 3 vessels, 72h):
 
 ```
 api/                  FastAPI service + engine
-  aqualign/             differentiator (ocean_field, particle_simulator, optimizer)
+  harmony/             differentiator (ocean_field, particle_simulator, optimizer)
   app/                  main.py (HTTP), runner.py (headless), explain.py (LLM copilot)
   scripts/              generate_data.py (synthetic), fetch_real_data.py (OSCAR real currents)
   tests/                smoke tests
@@ -80,7 +80,7 @@ python api/scripts/fetch_real_data.py --region bay-of-bengal --write data/gulf_s
 
 The engine only reads `u/v/x/y` arrays, so it is dataset-agnostic. A backup of
 the synthetic field is kept as `data/gulf_stream_synthetic_backup.npz`. Set
-`AQUALIGN_DATA` to switch files.
+`HARMONY_DATA` to switch files.
 
 ## Deploy on AWS
 
@@ -97,7 +97,7 @@ aws sts get-caller-identity        # must return an identity, not an error
 NEXT_PUBLIC_API_URL=https://… ./infra/scripts/deploy-web.sh   # prints CloudFront URL
 
 # 3. LLM copilot (optional) — the 3-second explainer
-aws ssm put-parameter --name /aqualign/openai-key --type SecureString --value sk-…
+aws ssm put-parameter --name /harmony/openai-key --type SecureString --value sk-…
 curl -X POST https://…/api/explain -H "Content-Type: application/json" \
   -d '{"params":{…},"metrics":{…}}'
 ```

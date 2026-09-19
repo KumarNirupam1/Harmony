@@ -7,7 +7,7 @@ from .optimizer import RouteOptimizer
 from .particle_simulator import ParticleSimulator
 
 def run_comparison():
-    print("Initializing Aqualign Comparison...")
+    print("Initializing Harmony Comparison...")
     device = "cpu"
     field = OceanField(device=device)
     
@@ -63,8 +63,8 @@ def run_comparison():
         
     random_count = random_collected_mask.sum().item()
     
-    # --- STRATEGY 2: Aqualign (Optimized) ---
-    print("\n--- Running Aqualign Optimization ---")
+    # --- STRATEGY 2: Harmony (Optimized) ---
+    print("\n--- Running Harmony Optimization ---")
     optimizer = RouteOptimizer(field, num_vessels, steps, dt)
     
     # Tune Training
@@ -106,7 +106,7 @@ def run_comparison():
     
     print("\nResults:")
     print(f"Random: Collected={random_count}/{len(d_pos)}, Fuel={random_fuel:.1f}")
-    print(f"Aqualign: Collected={opt_count}/{len(d_pos)}, Fuel={opt_fuel:.1f}")
+    print(f"Harmony: Collected={opt_count}/{len(d_pos)}, Fuel={opt_fuel:.1f}")
     
     os.makedirs('results', exist_ok=True)
     np.savez('results/comparison_metrics.npz', **results)
@@ -142,7 +142,7 @@ def plot_comparison(field, start_pos, debris_pos, rand_path, opt_path, results):
     
     # Plot 2: Optimized
     ax2 = plt.subplot(gs[1])
-    ax2.set_title("Aqualign Optimized")
+    ax2.set_title("Harmony Optimized")
     ax2.pcolormesh(X, Y, mag, cmap='Blues', alpha=0.3, shading='auto')
     ax2.quiver(X[::5, ::5], Y[::5, ::5], U[::5, ::5], V[::5, ::5], color='gray', alpha=0.3)
     ax2.scatter(debris_pos.cpu()[:, 0], debris_pos.cpu()[:, 1], c='red', s=5, alpha=0.5)
@@ -154,7 +154,7 @@ def plot_comparison(field, start_pos, debris_pos, rand_path, opt_path, results):
     ax3 = plt.subplot(gs[2])
     ax3.set_title("Performance Metrics")
     
-    labels = ['Random', 'Aqualign']
+    labels = ['Random', 'Harmony']
     collected = [results['random_collected'], results['opt_collected']]
     fuel = [results['random_fuel'], results['opt_fuel']]
     

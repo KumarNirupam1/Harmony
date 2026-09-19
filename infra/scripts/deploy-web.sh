@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Deploy the Aqualign web app (static export) to S3 + CloudFront with OAC.
-# Prereqs: AWS CLI. Bucket must be unique globally (default: aqualign-web-<account>).
+# Deploy the Harmony web app (static export) to S3 + CloudFront with OAC.
+# Prereqs: AWS CLI. Bucket must be unique globally (default: harmony-web-<account>).
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 REGION="${AWS_REGION:-$(aws configure get region || echo us-east-1)}"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-BUCKET="${BUCKET:-aqualign-web-$ACCOUNT_ID}"
-CF_ORIGIN_ID="aqualign-web-origin"
+BUCKET="${BUCKET:-harmony-web-$ACCOUNT_ID}"
+CF_ORIGIN_ID="harmony-web-origin"
 
 echo "==> [1/4] Building static export"
 npm run build
@@ -38,8 +38,8 @@ DIST_ID=$(aws cloudfront list-distributions --query \
  "DistributionList.Items[?Origins.Items[0].Id=='$CF_ORIGIN_ID'].Id" --output text | tr -s ' ' | head -1)
 if [ -z "$DIST_ID" ] || [ "$DIST_ID" == "None" ]; then
   DIST_ID=$(aws cloudfront create-distribution --distribution-config "$(cat <<EOF
-{ "CallerReference":"aqualign-web-$(date +%s)",
-  "Comment":"Aqualign web (static)",
+{ "CallerReference":"harmony-web-$(date +%s)",
+  "Comment":"Harmony web (static)",
   "DefaultRootObject":"index.html",
   "Origins":{"Quantity":1,"Items":[
     { "Id":"$CF_ORIGIN_ID",

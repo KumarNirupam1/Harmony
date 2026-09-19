@@ -19,7 +19,7 @@ const instrument = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Aqualign — Ride the current. Waste nothing.",
+  title: "Harmony — Ride the current. Waste nothing.",
   description:
     "Mission planning for ocean-cleanup fleets. A differentiable physics engine that lets vessels ride ocean currents instead of fighting them.",
 };
@@ -36,7 +36,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("aqualign-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}`,
+            __html: `try{if(localStorage.getItem("harmony-theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}`,
           }}
         />
       </head>

@@ -5,7 +5,7 @@ export function HowItWorks() {
         Process
       </p>
       <h2 className="font-display mt-3 text-center text-4xl tracking-tight sm:text-5xl">
-        How Aqualign Works
+        How Harmony Works
       </h2>
       <p className="mx-auto mt-3 max-w-2xl text-center text-muted">
         Differentiable physics, not a trained network. We unroll the ocean forward,

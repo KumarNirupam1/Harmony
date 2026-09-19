@@ -1,4 +1,4 @@
-name: aqualign-ci
+name: harmony-ci
 
 on:
   push:
