@@ -22,6 +22,8 @@ sam deploy --stack-name "$STACK_NAME" --region "$REGION" \
   --template .aws-sam/build/template.yaml
 
 echo ""
-echo "==> [3/3] Done. API URL:"
+echo "==> [3/3] Done. API URLs:"
 aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$REGION" \
   --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text
+aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$REGION" \
+  --query "Stacks[0].Outputs[?OutputKey=='FunctionUrl'].OutputValue" --output text

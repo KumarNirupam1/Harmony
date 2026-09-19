@@ -36,18 +36,29 @@ Resources:
             Path: /{proxy+}
             Method: ANY
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref MissionsTable
-        - S3ReadPolicy:
-            BucketName: !Ref DataBucket
-        - S3WritePolicy:
-            BucketName: !Ref DataBucket
-        - SSMParameterReadPolicy:
-            ParameterName: /harmony/openai-key
+        # NOTE: use plain managed ARNs here — SAM's shorthand policies
+        # (e.g. DynamoDBCrudPolicy) are silently NOT attached for PackageType=Image.
+        - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
         - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
     Metadata:
       DockerContext: ../
       Dockerfile: api/Dockerfile
+
+  # Direct Lambda URL — API Gateway HTTP API caps integrations at 30s, but real
+  # solves take ~60s. The web app uses this URL as its API base.
+  MissionFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      TargetFunctionArn: !GetAtt MissionFunction.Arn
+      Cors:
+        AllowCredentials: false
+        AllowOrigins: ["*"]
+        AllowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"]
+        AllowHeaders: ["*"]
+        ExposeHeaders: ["*"]
 
   # ---- Mission history store ----
   MissionsTable:
@@ -77,6 +88,9 @@ Outputs:
   ApiUrl:
     Description: Base URL of the Harmony mission API (test with /health).
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  FunctionUrl:
+    Description: Direct Lambda URL — no 30s API Gateway timeout; use this for long mission solves.
+    Value: !GetAtt MissionFunctionUrl.FunctionUrl
   MissionsTableName:
     Description: DynamoDB table storing past missions.
     Value: !Ref MissionsTable
