@@ -137,7 +137,13 @@ def list_missions(limit: int = 12):
         items: list = []
         kwargs = {
             "TableName": table_name,
-            "ProjectionExpression": "missionId, createdAt, params, metrics",
+            "ProjectionExpression": "#id, #ca, #p, #m",
+            "ExpressionAttributeNames": {
+                "#id": "missionId",
+                "#ca": "createdAt",
+                "#p": "params",
+                "#m": "metrics",
+            },
         }
         while True:
             resp = client.scan(**kwargs)
