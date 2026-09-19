@@ -13,12 +13,13 @@ if ! command -v sam >/dev/null 2>&1; then
 fi
 
 echo "==> [1/3] sam build (container image via api/Dockerfile — first build pulls PyTorch, takes a while)"
-sam build --use-container
+sam build -t infra/sam-template.yaml --use-container
 
 echo "==> [2/3] sam deploy ($STACK_NAME in $REGION)"
 sam deploy --stack-name "$STACK_NAME" --region "$REGION" \
   --resolve-image-repos --resolve-s3 \
-  --no-confirm-changeset --capabilities CAPABILITY_IAM
+  --no-confirm-changeset --capabilities CAPABILITY_IAM \
+  --template .aws-sam/build/template.yaml
 
 echo ""
 echo "==> [3/3] Done. API URL:"
