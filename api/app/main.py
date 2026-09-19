@@ -10,6 +10,7 @@ import sys
 import time
 import uuid
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 from typing import Optional
 
@@ -22,6 +23,37 @@ sys.path.insert(0, str(API_ROOT))
 
 from app.runner import MissionParams, run_mission  # noqa: E402
 from app.explain import explain_mission  # noqa: E402
+
+
+def _ddb_type(value):
+    """Recursively convert values for DynamoDB (boto3 resource rejects floats).
+
+    Numbers must be Decimal; bool/int/str pass through; lists/dicts recurse.
+    """
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, float):
+        return Decimal(str(value))
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (list, tuple)):
+        return [_ddb_type(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _ddb_type(v) for k, v in value.items()}
+    return value
+
+
+def _from_ddb(value):
+    """Inverse of _ddb_type: Decimal -> float so results round-trip to JSON."""
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, list):
+        return [_from_ddb(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _from_ddb(v) for k, v in value.items()}
+    return value
 
 
 class MissionRequest(BaseModel):
@@ -78,8 +110,8 @@ def _save_mission(result: dict) -> Optional[str]:
             Item={
                 "missionId": mission_id,
                 "createdAt": datetime.now(timezone.utc).isoformat(),
-                "params": result.get("params", {}),
-                "metrics": result.get("metrics", {}),
+                "params": _ddb_type(result.get("params", {})),
+                "metrics": _ddb_type(result.get("metrics", {})),
             }
         )
         return mission_id
@@ -99,7 +131,7 @@ def list_missions(limit: int = 12):
         rows = sorted(
             scan.get("Items", []), key=lambda r: r.get("createdAt", ""), reverse=True
         )[: max(1, min(limit, 50))]
-        return {"missions": rows}
+        return {"missions": [_from_ddb(r) for r in rows]}
     except Exception:  # noqa: BLE001
         return {"missions": []}
 
