@@ -1,16 +1,32 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #04070d;
-  --foreground: #e6eeff;
-  --accent: #38bdf8;
-  --accent-2: #22d3ee;
-  --muted: #7e95b8;
-  --panel: #0b1220;
-  --panel-2: #0f1729;
-  --border: #1c2b45;
-  --coral: #f0883e;
+  --background: #fffdfb;
+  --foreground: #161616;
+  --accent: #ff7d27;
+  --accent-2: #ff9a4f;
+  --muted: #8a8a8a;
+  --panel: #ffffff;
+  --panel-2: #fff6f0;
+  --border: rgba(28, 16, 8, 0.1);
+  --coral: #ff7d27;
   --success: #2ea043;
+  --shadow: 0 18px 50px rgba(28, 16, 8, 0.08);
+}
+
+html.dark {
+  color-scheme: dark;
+  --background: #0c0a09;
+  --foreground: #f4ece6;
+  --accent: #ff7d27;
+  --accent-2: #ff9a4f;
+  --muted: #a8988c;
+  --panel: #161210;
+  --panel-2: #1e1814;
+  --border: rgba(255, 214, 190, 0.12);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -32,39 +48,89 @@
   border-color: var(--border);
 }
 
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
 body {
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(56, 189, 248, 0.12), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(34, 211, 238, 0.08), transparent 55%),
+    radial-gradient(900px 420px at 50% -10%, rgba(255, 125, 39, 0.14), transparent 55%),
     var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans);
 }
 
-.text-gradient {
-  background: linear-gradient(100deg, var(--accent), var(--accent-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.card {
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-}
-
-.badge {
-  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  color: var(--accent);
-}
-
-/* particle-ish subtle grid, kept tasteful */
-.halo {
+html.dark body {
   background:
-    linear-gradient(90deg, rgba(56, 189, 248, 0.45) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(56, 189, 248, 0.45) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse at center, black 30%, transparent 72%);
+    radial-gradient(1100px 520px at 50% -12%, rgba(255, 125, 39, 0.16), transparent 58%),
+    var(--background);
+}
+
+.font-display {
+  font-family: var(--font-instrument), ui-serif, Georgia, "Times New Roman", serif;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.35rem;
+  border-radius: 999px;
+  background: #ff7d27;
+  color: #fff;
+  padding: 0 1.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  background: #ef6c16;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--foreground);
+  padding: 0 1.2rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: background 160ms ease;
+}
+
+.btn-ghost:hover {
+  background: var(--panel-2);
+}
+
+.soft-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 1.75rem;
+  box-shadow: var(--shadow);
+}
+
+.cta-band {
+  background: linear-gradient(180deg, #fff8f3, #fff1e8);
+  border: 1px solid rgba(255, 125, 39, 0.14);
+}
+
+html.dark .cta-band {
+  background: linear-gradient(180deg, #1a1410, #221910);
+  border-color: rgba(255, 125, 39, 0.18);
+}
+
+.inset-well {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
 }
