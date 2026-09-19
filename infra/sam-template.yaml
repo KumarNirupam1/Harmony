@@ -45,7 +45,7 @@ Resources:
             ParameterName: /harmony/openai-key
         - CloudWatchLambdaInsightsExecutionRolePolicy: {}
     Metadata:
-      DockerContext: ../../
+      DockerContext: ../
       Dockerfile: api/Dockerfile
 
   # ---- Mission history store ----
