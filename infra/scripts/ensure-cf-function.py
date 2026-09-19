@@ -29,8 +29,11 @@ def main() -> int:
     try:
         import boto3  # noqa: PLC0415
     except ImportError:
-        print("boto3 is required. Install it with:  python -m pip install boto3", file=sys.stderr)
-        return 3
+        print("boto3 missing — attempting install...", file=sys.stderr)
+        import subprocess  # noqa: PLC0415
+
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", "--user", "boto3"])
+        import boto3  # noqa: PLC0415
 
     code = Path(os.environ.get("HARMONY_CF_FUNCTION_CODE", DEFAULT_CODE)).read_text()
     cf = boto3.client("cloudfront", region_name="us-east-1")
