@@ -132,7 +132,8 @@ def list_missions(limit: int = 12):
             scan.get("Items", []), key=lambda r: r.get("createdAt", ""), reverse=True
         )[: max(1, min(limit, 50))]
         return {"missions": [_from_ddb(r) for r in rows]}
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        print(f"WARN list missions failed: {type(exc).__name__}: {exc}")
         return {"missions": []}
 
 
