@@ -14,23 +14,29 @@ Legend: `[x]` done · `[ ]` todo · `(owner)` who.
 - [x] `POST /mission` solves and persists (missionId + row in DynamoDB).
 - [x] `GET /api/missions` returns real history (reserved-word `metrics` bug fixed,
       decimals round-trip to JSON).
-- [x] `POST /api/explain` works with graceful static fallback when no SSM key.
+- [x] `POST /api/explain` returns `source: openai` (SSM key `/harmony/openai-key` set).
 - Live URLs:
   - Function URL (use for web; no 30 s cap):
     `https://ovnmgz33g5i4qrsqxmfir5ov2a0ftakv.lambda-url.us-east-1.on.aws/`
   - API Gateway: `https://s0vu084eog.execute-api.us-east-1.amazonaws.com`
 
+## Web — DEPLOYED & VERIFIED  ✅ (Sep 20)
+
+- [x] CloudFront live: `https://d32eo4z8j4qsxd.cloudfront.net` — all routes 200.
+- [x] `trailingSlash: true` so static export emits `route/index.html`.
+- [x] CloudFront viewer-request Function (`harmony-viewer-rewrite`) rewrites
+      `/planner` → `/planner/index.html`; now baked idempotently into
+      `infra/scripts/deploy-web.sh` via `ensure-cf-function.py` (auto-installs boto3).
+- [x] `NEXT_PUBLIC_API_URL` set to the Function URL at build; CORS preflight verified.
+- [x] `npx tsc --noEmit` clean · `npm run lint` clean (1 benign `<img>` warning).
+
 ## P0 — Ship-blocking (finish first)
 
 ### Deployment (owner: you)
-- [ ] Copilot LLM key (optional but needed for `source: openai`):
-      `aws ssm put-parameter --name /harmony/openai-key --type SecureString --value sk-...`
-      then re-smoke `POST /api/explain` → expect `"source":"openai"`.
-- [ ] Deploy the web app with the Function URL baked in at build time:
-      `NEXT_PUBLIC_API_URL=https://ovnmgz33g5i4qrsqxmfir5ov2a0ftakv.lambda-url.us-east-1.on.aws npm run deploy:web`
-      → live at CloudFront URL.
-- [ ] End-to-end: CloudFront URL → planner → run a mission (~60 s via Function
-      URL) → canvas + KPIs + history + copilot all work against the real Lambda.
+- [ ] Verify CI once pushed: GitHub Actions workflows at `.github/workflows/ci.yml`
+      (`web-build` + `api-test`) must be green on `main`.
+- [ ] Optional: run `npm run deploy:web` once more end-to-end to prove the CF
+      rewrite step is reproducible (should print "already associated").
 
 ### Data & correctness (owner: you, on a machine with torch installed)
 - [ ] Rebuild the shipped mock *and* sample response with the v1.1 metrics
@@ -46,16 +52,16 @@ Legend: `[x]` done · `[ ]` todo · `(owner)` who.
 
 ### Verification before you push
 - [ ] `python3 -m py_compile api/app/*.py api/harmony/*.py api/tests/*.py`
-- [ ] `npx tsc --noEmit`  → 0 errors
+- [ ] `npx tsc --noEmit`  → 0 errors (run again after any P1 changes)
 - [ ] `npm run lint`  → clean (scoped to source; see package.json)
-- [ ] `npm run build`  → 8 static routes exported
+- [ ] `npm run build`  → static routes exported
 - [ ] `bash -n infra/scripts/*.sh && docker build -t harmony-api -f api/Dockerfile .`
       → image builds and `data/gulf_stream.npz` is inside (needed by the engine).
 
 ## P0 — Git / CI
-- [ ] Push to `main` (local commits are behind; stack spans `97c7733..c965fb1`);
+- [ ] Push to `main` (local commits are behind; stack spans `97c7733..f9f7433`);
       GitHub Actions runs `web-build` (npm ci/lint/build) and `api-test`
-      (pip install + pytest). Both must be green on push.
+      (pip install CPU torch + pytest). Both must be green on push.
 - [ ] Any file >2 MB will be rejected by pre-commit (`.npz` / samples are fine
       today — watch new dataset exports).
 
