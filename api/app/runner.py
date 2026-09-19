@@ -68,6 +68,13 @@ def _simulate_strategy(
     captured_mask = torch.zeros(len(d_pos), dtype=torch.bool, device=d_pos.device)
     debris_tracks = [d_pos.detach().cpu().numpy().tolist()]
 
+    grid_w = int(field.x_max) + 1
+    grid_h = int(field.y_max) + 1
+    covered = torch.zeros(grid_w, grid_h, dtype=torch.bool, device=d_pos.device)
+    captures_over_time: list = []
+    current_drift = 0.0
+    first_capture = None
+
     for t in range(horizon):
         d_pos = ParticleSimulator.advect_particles(d_pos, field.get_velocity, dt, method="rk4")
         v_current = field.get_velocity(v_pos)
@@ -81,9 +88,24 @@ def _simulate_strategy(
         min_dists, _ = dists.min(dim=0)
         captured_mask = captured_mask | (min_dists < CAPTURE_RADIUS)
 
+        xi = v_pos[:, 0].round().long().clamp(0, grid_w - 1)
+        yi = v_pos[:, 1].round().long().clamp(0, grid_h - 1)
+        covered[xi, yi] = True
+        current_drift += float(v_current.norm(dim=1).sum().item())
+
+        c = int(captured_mask.sum().item())
+        captures_over_time.append(c)
+        if first_capture is None and c > 0:
+            first_capture = t + 1
+
+    coverage_pct = (float(covered.sum().item()) / float(grid_w * grid_h)) * 100.0
     return {
         "collected": int(captured_mask.sum().item()),
-        "fuel": float(torch.sum(controls ** 2).item()),
+        "control_effort": float(torch.sum(controls ** 2).item()),
+        "captures_over_time": captures_over_time,   # cumulative per frame (T)
+        "first_capture_hour": first_capture,
+        "coverage_pct": round(coverage_pct, 2),
+        "current_assisted_distance": round(current_drift, 2),  # ocean drift, domain units
         "trajectory": trajectory,          # (T, num_vessels, 2)
         "debris_tracks": debris_tracks,    # (T, M, 2) — useful for a scrubber
     }
@@ -103,6 +125,7 @@ def run_mission(params: MissionParams = MissionParams()) -> Dict:
     )
     debris_center = torch.tensor([25.0, 25.0], device=device)
     debris = debris_center + torch.randn(params.debris_count, 2, device=device) * params.debris_spread
+    debris = debris.clamp(0.5, 49.5)  # keep spawn points inside the 0–50 domain for the UI
 
     # ---- Random patrol baseline ----
     random_controls = torch.randn(steps, params.num_vessels, 2, device=device)
@@ -115,28 +138,37 @@ def run_mission(params: MissionParams = MissionParams()) -> Dict:
     optimized = _simulate_strategy(field, final_controls, 1.5, initial_vessels, debris, steps, dt)
 
     efficiency_gain = ((optimized["collected"] / max(1, random["collected"])) - 1) * 100
-    fuel_saved = random["fuel"] - optimized["fuel"]
-    fuel_saved_pct = (fuel_saved / max(1.0, random["fuel"])) * 100
+    effort_saved = random["control_effort"] - optimized["control_effort"]
+    effort_saved_pct = (effort_saved / max(1.0, random["control_effort"])) * 100
 
     return {
         "params": asdict(params),
         "field": _field_sample(field),
         "domain": {"x_max": float(field.x_max), "y_max": float(field.y_max)},
         "initial_vessels": initial_vessels.cpu().tolist(),
+        "debris": debris.cpu().tolist(),  # [M, 2] start positions — front-end renders these
         "random": random,
         "optimized": optimized,
         "metrics": {
             "random_collected": random["collected"],
             "optimized_collected": optimized["collected"],
-            "random_fuel": random["fuel"],
-            "optimized_fuel": optimized["fuel"],
+            "random_unique_captures": random["collected"],
+            "unique_captures": optimized["collected"],
+            "random_control_effort": random["control_effort"],
+            "optimized_control_effort": optimized["control_effort"],
+            "control_effort_saved": round(effort_saved, 1),
+            "control_effort_saved_pct": round(effort_saved_pct, 1),
             "efficiency_gain": round(efficiency_gain, 1),
-            "fuel_saved": round(fuel_saved, 1),
-            "fuel_saved_pct": round(fuel_saved_pct, 1),
+            "coverage_pct": optimized["coverage_pct"],
+            "random_coverage_pct": random["coverage_pct"],
+            "first_capture_hour": optimized["first_capture_hour"],
+            "random_first_capture_hour": random["first_capture_hour"],
+            "current_assisted_distance": optimized["current_assisted_distance"],
+            "random_current_assisted_distance": random["current_assisted_distance"],
             "total_debris": params.debris_count,
         },
         "optimization_history": [
-            {"iter": i, "loss": h["loss"], "collected": h["collected_metric"], "fuel": h["fuel_metric"]}
+            {"iter": i, "loss": h["loss"], "collected": h["collected_metric"], "control_effort": h["fuel_metric"]}
             for i, h in enumerate(history)
         ],
     }

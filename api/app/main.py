@@ -5,9 +5,13 @@ locally with:  uvicorn app.main:app --port 8000
 """
 from __future__ import annotations
 
+import os
 import sys
 import time
+import uuid
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,6 +48,58 @@ def health():
     return {"status": "ok", "service": "aqualign-api"}
 
 
+def _mission_table():
+    """Return a DynamoDB table client, or None when persistence is unavailable."""
+    table_name = os.environ.get("AQUALIGN_TABLE")
+    if not table_name:
+        return None
+    try:
+        import boto3
+    except ImportError:
+        return None
+    try:
+        region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "us-east-1"
+        return boto3.resource("dynamodb", region_name=region).Table(table_name)
+    except Exception:  # noqa: BLE001 — persistence is best-effort
+        return None
+
+
+def _save_mission(result: dict) -> Optional[str]:
+    """Persist params + metrics (not trajectories) to DynamoDB. Returns mission id."""
+    table = _mission_table()
+    if table is None:
+        return None
+    mission_id = uuid.uuid4().hex
+    try:
+        table.put_item(
+            Item={
+                "missionId": mission_id,
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+                "params": result.get("params", {}),
+                "metrics": result.get("metrics", {}),
+            }
+        )
+        return mission_id
+    except Exception:  # noqa: BLE001 — never break the simulation response
+        return None
+
+
+@app.get("/api/missions")
+def list_missions(limit: int = 12):
+    """Recent mission summaries (params + metrics only, no trajectories)."""
+    table = _mission_table()
+    if table is None:
+        return {"missions": []}
+    try:
+        scan = table.scan(ProjectionExpression="missionId, createdAt, params, metrics")
+        rows = sorted(
+            scan.get("Items", []), key=lambda r: r.get("createdAt", ""), reverse=True
+        )[: max(1, min(limit, 50))]
+        return {"missions": rows}
+    except Exception:  # noqa: BLE001
+        return {"missions": []}
+
+
 @app.post("/mission")
 def mission(req: MissionRequest):
     started = time.time()
@@ -62,5 +118,10 @@ def mission(req: MissionRequest):
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"simulation failed: {exc}") from exc
 
-    result["meta"] = {"latency_ms": int((time.time() - started) * 1000)}
+    mission_id = _save_mission(result)
+    result["meta"] = {
+        "latency_ms": int((time.time() - started) * 1000),
+        "mission_id": mission_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
     return result

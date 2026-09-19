@@ -58,7 +58,7 @@ export default function History() {
                                     </p>
                                     <p className="mt-1 text-xs text-muted">
                                         {new Date(m.createdAt).toLocaleString()} · gain {m.metrics.efficiency_gain}% ·
-                                        fuel saved {m.metrics.fuel_saved_pct}%
+                                        effort saved {m.metrics.control_effort_saved_pct}%
                                     </p>
                                 </div>
                                 <Link

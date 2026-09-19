@@ -61,18 +61,18 @@ function integrate(
   return frames;
 }
 
-function pathFuel(traj: Trajectory) {
-  let fuel = 0;
+function pathEffort(traj: Trajectory) {
+  let effort = 0;
   for (let t = 1; t < traj.length; t++) {
     for (let v = 0; v < traj[t].length; v++) {
       const dx = traj[t][v][0] - traj[t - 1][v][0];
       const dy = traj[t][v][1] - traj[t - 1][v][1];
       const [u, velV] = gyre(traj[t - 1][v][0], traj[t - 1][v][1], 50, 50);
       const thrust = Math.hypot(dx - u * 0.55, dy - velV * 0.55);
-      fuel += thrust * thrust * 8;
+      effort += thrust * thrust * 8;
     }
   }
-  return Math.round(fuel * 10) / 10;
+  return Math.round(effort * 10) / 10;
 }
 
 export function generateMockMission(req: MissionRequest): MissionResult {
@@ -126,48 +126,82 @@ export function generateMockMission(req: MissionRequest): MissionResult {
     Math.round(randomCollected * (1.35 + quality * 0.35) + 2),
   );
 
-  const randomFuel = pathFuel(randomTraj);
-  const optimizedFuel = Math.max(40, Math.round(randomFuel * (0.38 + (1 - quality) * 0.12) * 10) / 10);
+  const randomEffort = pathEffort(randomTraj);
+  const optimizedEffort = Math.max(40, Math.round(randomEffort * (0.38 + (1 - quality) * 0.12) * 10) / 10);
   const efficiencyGain =
     Math.round(((optimizedCollected / Math.max(1, randomCollected) - 1) * 100) * 10) / 10;
-  const fuelSaved = Math.round((randomFuel - optimizedFuel) * 10) / 10;
-  const fuelSavedPct = Math.round((fuelSaved / Math.max(1, randomFuel)) * 1000) / 10;
+  const effortSaved = Math.round((randomEffort - optimizedEffort) * 10) / 10;
+  const effortSavedPct = Math.round((effortSaved / Math.max(1, randomEffort)) * 1000) / 10;
 
   const historyLen = Math.min(req.iterations, 80);
   const optimization_history = Array.from({ length: historyLen }, (_, i) => {
     const t = i / Math.max(1, historyLen - 1);
     const collected = 120 + t * (optimizedCollected * 12);
-    const fuel = 40 + (1 - t) * 90;
+    const effort = 40 + (1 - t) * 90;
     return {
       iter: Math.round((i / Math.max(1, historyLen - 1)) * req.iterations),
-      loss: Math.round((-collected + fuel * 0.4) * 100) / 100,
+      loss: Math.round((-collected + effort * 0.4) * 100) / 100,
       collected: Math.round(collected * 100) / 100,
-      fuel: Math.round(fuel * 10) / 10,
+      control_effort: Math.round(effort * 10) / 10,
     };
   });
+
+  const frames = req.horizon + 1;
+  const capturesOverTime = (target: number) =>
+    Array.from({ length: frames }, (_, i) =>
+      Math.min(target, Math.round(target * Math.pow(i / Math.max(1, frames - 1), 0.7))),
+    );
+  const firstCaptureHour = (target: number) =>
+    target > 0 ? 1 + Math.round(frames * 0.08 * (1 + rand() * 0.5)) : null;
+  const optFirst = firstCaptureHour(optimizedCollected);
+  const rndFirst = firstCaptureHour(randomCollected);
+  const optCoverage = Math.round((18 + rand() * 8) * 10) / 10;
+  const rndCoverage = Math.round((6 + rand() * 4) * 10) / 10;
+  const optDrift = Math.round((90 + rand() * 40) * 10) / 10;
+  const rndDrift = Math.round((80 + rand() * 40) * 10) / 10;
 
   return {
     params: req,
     field: { x, y, u, v, mag },
     domain: { x_max: xmax, y_max: ymax },
-    random: { collected: randomCollected, fuel: randomFuel, trajectory: randomTraj },
+    random: {
+      collected: randomCollected,
+      control_effort: randomEffort,
+      captures_over_time: capturesOverTime(randomCollected),
+      first_capture_hour: rndFirst,
+      coverage_pct: rndCoverage,
+      current_assisted_distance: rndDrift,
+      trajectory: randomTraj,
+    },
     optimized: {
       collected: optimizedCollected,
-      fuel: optimizedFuel,
+      control_effort: optimizedEffort,
+      captures_over_time: capturesOverTime(optimizedCollected),
+      first_capture_hour: optFirst,
+      coverage_pct: optCoverage,
+      current_assisted_distance: optDrift,
       trajectory: optimizedTraj,
     },
     metrics: {
       random_collected: randomCollected,
       optimized_collected: optimizedCollected,
-      random_fuel: randomFuel,
-      optimized_fuel: optimizedFuel,
+      random_unique_captures: randomCollected,
+      unique_captures: optimizedCollected,
+      random_control_effort: randomEffort,
+      optimized_control_effort: optimizedEffort,
+      control_effort_saved: effortSaved,
+      control_effort_saved_pct: effortSavedPct,
       efficiency_gain: efficiencyGain,
-      fuel_saved: fuelSaved,
-      fuel_saved_pct: fuelSavedPct,
+      coverage_pct: optCoverage,
+      random_coverage_pct: rndCoverage,
+      first_capture_hour: optFirst,
+      random_first_capture_hour: rndFirst,
+      current_assisted_distance: optDrift,
+      random_current_assisted_distance: rndDrift,
       total_debris: req.debris_count,
     },
     optimization_history,
-    meta: { latency_ms: 1800 + Math.round(rand() * 900) },
+    meta: { latency_ms: 1800 + Math.round(rand() * 900), mission_id: null, created_at: "" },
     debris,
   };
 }

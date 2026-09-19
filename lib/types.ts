@@ -20,18 +20,30 @@ export type VelocityField = {
 
 export type StrategyResult = {
   collected: number;
-  fuel: number;
+  control_effort: number;
+  captures_over_time: number[]; // cumulative unique captures per frame (length horizon + 1)
+  first_capture_hour: number | null;
+  coverage_pct: number;
+  current_assisted_distance: number;
   trajectory: Trajectory;
 };
 
 export type MissionMetrics = {
   random_collected: number;
   optimized_collected: number;
-  random_fuel: number;
-  optimized_fuel: number;
+  random_unique_captures: number;
+  unique_captures: number;
+  random_control_effort: number;
+  optimized_control_effort: number;
+  control_effort_saved: number;
+  control_effort_saved_pct: number;
   efficiency_gain: number;
-  fuel_saved: number;
-  fuel_saved_pct: number;
+  coverage_pct: number;
+  random_coverage_pct: number;
+  first_capture_hour: number | null;
+  random_first_capture_hour: number | null;
+  current_assisted_distance: number;
+  random_current_assisted_distance: number;
   total_debris: number;
 };
 
@@ -39,7 +51,13 @@ export type OptimizationStep = {
   iter: number;
   loss: number;
   collected: number;
-  fuel: number;
+  control_effort: number;
+};
+
+export type MissionMeta = {
+  latency_ms: number;
+  mission_id: string | null;
+  created_at: string;
 };
 
 export type MissionResult = {
@@ -50,8 +68,15 @@ export type MissionResult = {
   optimized: StrategyResult;
   metrics: MissionMetrics;
   optimization_history: OptimizationStep[];
-  meta: { latency_ms: number };
+  meta: MissionMeta;
   debris: number[][];
+};
+
+export type SavedMissionSummary = {
+  missionId: string;
+  createdAt: string;
+  params: MissionRequest;
+  metrics: MissionMetrics;
 };
 
 export const DEFAULT_MISSION: MissionRequest = {
