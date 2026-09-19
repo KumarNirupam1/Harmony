@@ -2,12 +2,16 @@
 
 Backend owner: **Kumar Nirupam** · Contract frozen · Changes only via both-of-us.
 
+> **v1.1 (Sept 19)** — `fuel` → **`control_effort`** everywhere; new metrics
+> added; DynamoDB persistence + `GET /api/missions`. See §3 for the new shape.
+
 ## 1 / Endpoints (base URL TBD → we'll give you the live AWS URL)
 
 | Method | Path | Body | Returns |
 | --- | --- | --- | --- |
 | `GET` | `/health` | — | `{"status":"ok","service":"aqualign-api"}` |
 | `POST` | `/mission` | JSON (below) | Full mission result (below) |
+| `GET` | `/api/missions?limit=12` | — | `{"missions":[{missionId, createdAt, params, metrics}}]}` |
 
 CORS: `allow-origins: *` — any origin can call from the browser, including your
 localhost dev server.
@@ -39,7 +43,11 @@ localhost dev server.
 
   "random": {
     "collected": 6,                             // debris captured (hard count)
-    "fuel": 450.4,                              // fuel cost (sum thrust²)
+    "control_effort": 450.4,                    // sum thrust² (was "fuel")
+    "captures_over_time": [0,1,2,3,4,5,6,6],    // cumulative captured per frame (length horizon+1)
+    "first_capture_hour": 9,                    // earliest capture hour (or null)
+    "coverage_pct": 8.1,                        // % of domain cells swept
+    "current_assisted_distance": 86.4,          // ocean drift applied to vessels (domain units)
     "trajectory": [ [ [x,y], [x,y], [x,y] ],    // [time=horizon+1][vessel][x,y]
                     /* 73 frames × 3 vessels */ ]
   },
@@ -49,17 +57,25 @@ localhost dev server.
   "metrics": {
     "random_collected": 6,
     "optimized_collected": 7,
-    "random_fuel": 450.4,
-    "optimized_fuel": 164.2,
-    "efficiency_gain": 16.7,    // % (optimized/random - 1)
-    "fuel_saved": 286.2,        // units
-    "fuel_saved_pct": 63.5,     // %
-    "total_debris": 200         // use as 100% scale
+    "random_unique_captures": 6,
+    "unique_captures": 7,
+    "random_control_effort": 450.4,
+    "optimized_control_effort": 164.2,
+    "control_effort_saved": 286.2,      // units
+    "control_effort_saved_pct": 63.5,   // %
+    "efficiency_gain": 16.7,            // % (optimized/random - 1)
+    "coverage_pct": 19.4,               // %
+    "random_coverage_pct": 8.1,         // %
+    "first_capture_hour": 4,            // (or null)
+    "random_first_capture_hour": 9,     // (or null)
+    "current_assisted_distance": 92.1,  // domain units
+    "random_current_assisted_distance": 86.4,
+    "total_debris": 200                 // use as 100% scale
   },
 
-  "optimization_history": [ { "iter": 0, "loss": -670.03, "collected": 670.03, "fuel": 0 }, ... ],
+  "optimization_history": [ { "iter": 0, "loss": -670.03, "collected": 670.03, "control_effort": 0 }, ... ],
 
-  "meta": { "latency_ms": 4218 }
+  "meta": { "latency_ms": 4218, "mission_id": "a1b2...", "created_at": "2026-09-19T…Z" }
 }
 ```
 
@@ -69,9 +85,12 @@ localhost dev server.
 
 ## 4 / Versioning + mock
 
-- **Live contract**: `data/sample-mission.json` in this repo is a **real response**
-  (from the actual engine — not hand-written). Use it as your mock until the AWS
-  URL is live. Note its `params.debris_count` = 80 (smaller sample).
+- **Mock of record**: `lib/mock-mission.ts` (`generateMockMission`) — already
+  updated to the v1.1 shape with `control_effort` + `captures_over_time`. Use it
+  as fallback until the AWS URL is live.
+- **`data/sample-mission.json`**: a real engine response but pre-v1.1 (still
+  uses `fuel` keys). Being refreshed — don't parse it as source of truth.
+- `meta.mission_id` is `null` locally (no DynamoDB) and a hex id on AWS.
 - **Don't rely on `debris_tracks`** in v1 mock — it's large; we may trim it server-side.
 
 ## 5 / Your app config

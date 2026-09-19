@@ -13,7 +13,14 @@ echo "==> [1/4] Building static export"
 npm run build
 
 echo "==> [2/4] Creating S3 bucket + public-read policy"
-aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null || true
+if [ "$REGION" == "us-east-1" ]; then
+  aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null || true
+else
+  aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" \
+    --create-bucket-configuration "LocationConstraint=$REGION" 2>/dev/null || true
+fi
+aws s3api put-public-access-block --bucket "$BUCKET" --public-access-block-configuration \
+  'BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuckets=false'
 aws s3api put-bucket-cors --bucket "$BUCKET" --cors-configuration '{
   "CORSRules": [{"AllowedHeaders":["*"],"AllowedMethods":["GET","HEAD"],"AllowedOrigins":["*"]}]}'
 aws s3api put-bucket-policy --bucket "$BUCKET" --policy "$(cat <<EOF
@@ -30,7 +37,7 @@ echo "==> [4/4] Ensuring CloudFront distribution"
 DIST_ID=$(aws cloudfront list-distributions --query \
  "DistributionList.Items[?Origins.Items[0].Id=='$CF_ORIGIN_ID'].Id" --output text | tr -s ' ' | head -1)
 if [ -z "$DIST_ID" ] || [ "$DIST_ID" == "None" ]; then
-  aws cloudfront create-distribution --distribution-config "$(cat <<EOF
+  DIST_ID=$(aws cloudfront create-distribution --distribution-config "$(cat <<EOF
 { "CallerReference":"aqualign-web-$(date +%s)",
   "Comment":"Aqualign web (static)",
   "DefaultRootObject":"index.html",
@@ -46,9 +53,7 @@ if [ -z "$DIST_ID" ] || [ "$DIST_ID" == "None" ]; then
     "AllowedMethods":{"Quantity":2,"Items":["GET","HEAD"]}},
   "Enabled":true }
 EOF
-)" >/dev/null
-  DIST_ID=$(aws cloudfront list-distributions --query \
-   "DistributionList.Items[?Origins.Items[0].Id=='$CF_ORIGIN_ID'].Id" --output text | tr -s ' ' | head -1)
+)" --query 'Distribution.Id' --output text)
 else
   aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/*" >/dev/null
 fi
