@@ -142,7 +142,7 @@ export function PlannerView() {
         <div className="grid gap-5 lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="soft-card h-fit p-5">
             <p className="text-sm font-semibold">Mission request</p>
-            <p className="mt-1 text-xs text-muted">Posted to `POST /mission` · 2–5s on Lambda</p>
+            <p className="mt-1 text-xs text-muted">Posted to `POST /mission` · tens of seconds on Lambda</p>
             <div className="mt-4 space-y-3">
               {fields.map((f) => (
                 <label key={f.key} className="block text-xs">

@@ -58,6 +58,14 @@ else
   aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/*" >/dev/null
 fi
 
+echo "==> [5/4] Ensuring CloudFront viewer-request rewrite function (idempotent)"
+if ! command -v python >/dev/null 2>&1 && ! command -v python3 >/dev/null 2>&1; then
+  echo "  WARN: python not found — leaving nav rewrite as-is; run infra/scripts/ensure-cf-function.py manually." >&2
+else
+  PY="$(command -v python || command -v python3)"
+  "$PY" infra/scripts/ensure-cf-function.py "$DIST_ID" || true
+fi
+
 echo "==> Done. CloudFront URL:"
 aws cloudfront get-distribution --id "$DIST_ID" --query "Distribution.DomainName" --output text
 echo "Bucket CORS enabled — API can be called from this origin."

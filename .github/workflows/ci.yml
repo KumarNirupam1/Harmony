@@ -1,28 +1,40 @@
-name: harmony-ci
+name: ci
 
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
   web-build:
+    name: web-build (lint + typecheck + export)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npx tsc --noEmit
       - run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: "https://example.invalid"
 
   api-test:
+    name: api-test (engine + copilot fallback)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r api/requirements.txt
-      - run: python -m pytest api/tests -q
+          cache: pip
+          cache-dependency-path: api/requirements.txt
+      - name: Install CPU torch (smaller/faster than default wheel)
+        run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - name: Install API deps
+        run: pip install -r api/requirements.txt
+      - name: Test
+        run: python -m pytest api/tests -q

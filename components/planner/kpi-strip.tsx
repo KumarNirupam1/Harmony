@@ -71,7 +71,7 @@ export function KpiStrip({
     },
     {
       label: "Efficiency gain",
-      value: `+${gain.toFixed(1)}%`,
+      value: `${gain >= 0 ? "+" : ""}${gain.toFixed(1)}%`,
       sub: "The money shot vs random patrol",
       accent: true,
     },
