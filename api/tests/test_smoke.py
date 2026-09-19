@@ -49,7 +49,9 @@ def test_run_mission_contract_shape():
     assert "control_effort" in result["optimization_history"][0]
 
 
-def test_explain_falls_back_to_static_without_key():
+def test_explain_falls_back_to_static_without_key(monkeypatch):
+    # No key configured (or no creds to fetch it) must never break the copilot.
+    monkeypatch.setattr("app.explain._openai_key", lambda: None)
     out = explain_mission(
         {"num_vessels": 3, "horizon": 72},
         {"optimized_collected": 7, "total_debris": 200, "efficiency_gain": 16.7, "control_effort_saved_pct": 63.5},
