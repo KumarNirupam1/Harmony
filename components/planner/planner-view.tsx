@@ -38,9 +38,9 @@ export function PlannerView() {
     let raf = 0;
     let last = performance.now();
     const tick = (now: number) => {
-      if (now - last > 40) {
+      if (now - last > 140) {
         last = now;
-        setFrame((f) => (f >= maxFrame ? 0 : f + 1));
+        setFrame((f) => (f >= maxFrame ? 0 : f + 0.35));
       }
       raf = requestAnimationFrame(tick);
     };
@@ -211,12 +211,18 @@ export function PlannerView() {
           <div className="flex min-h-[560px] flex-col gap-4">
             <div className="soft-card relative min-h-[480px] flex-1 overflow-hidden p-3">
               {status === "idle" && (
-                <div className="grid h-full min-h-[480px] place-items-center px-8 text-center">
-                  <div>
+                <div className="relative grid h-full min-h-[480px] place-items-center overflow-hidden rounded-[22px] px-8 text-center">
+                  <img
+                    src="/fleet.jpg"
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover opacity-35"
+                  />
+                  <div className="absolute inset-0 bg-background/55 dark:bg-background/70" />
+                  <div className="relative">
                     <p className="font-display text-3xl">Ready when you are</p>
-                    <p className="mt-2 text-sm text-muted">
-                      Hit Run mission. If the API is offline, a seeded double-gyre mock
-                      still paints the story for judges.
+                    <p className="mt-2 max-w-md text-sm text-muted">
+                      Hit Run mission. The intercept map shows Harmony boats against a
+                      random patrol on the same gyre — even if the API is offline.
                     </p>
                   </div>
                 </div>

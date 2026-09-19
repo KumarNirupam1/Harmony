@@ -3,29 +3,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #fffdfb;
-  --foreground: #161616;
-  --accent: #ff7d27;
-  --accent-2: #ff9a4f;
-  --muted: #8a8a8a;
+  --background: #f4fbff;
+  --foreground: #0d2a3a;
+  --accent: #27b3ff;
+  --accent-2: #5cc8ff;
+  --muted: #5d7d8f;
   --panel: #ffffff;
-  --panel-2: #fff6f0;
-  --border: rgba(28, 16, 8, 0.1);
-  --coral: #ff7d27;
+  --panel-2: #e8f6ff;
+  --border: rgba(15, 70, 100, 0.12);
+  --coral: #27b3ff;
   --success: #2ea043;
-  --shadow: 0 18px 50px rgba(28, 16, 8, 0.08);
+  --shadow: 0 18px 50px rgba(20, 90, 140, 0.1);
 }
 
 html.dark {
   color-scheme: dark;
-  --background: #0c0a09;
-  --foreground: #f4ece6;
-  --accent: #ff7d27;
-  --accent-2: #ff9a4f;
-  --muted: #a8988c;
-  --panel: #161210;
-  --panel-2: #1e1814;
-  --border: rgba(255, 214, 190, 0.12);
+  --background: #061018;
+  --foreground: #e6f4fb;
+  --accent: #27b3ff;
+  --accent-2: #5cc8ff;
+  --muted: #8aaebd;
+  --panel: #0c1822;
+  --panel-2: #122432;
+  --border: rgba(140, 210, 245, 0.14);
   --shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
 }
 
@@ -56,14 +56,14 @@ body {
 
 body {
   background:
-    radial-gradient(900px 420px at 50% -10%, rgba(255, 125, 39, 0.14), transparent 55%),
+    radial-gradient(1000px 480px at 50% -12%, rgba(39, 179, 255, 0.22), transparent 58%),
     var(--background);
   font-family: var(--font-sans);
 }
 
 html.dark body {
   background:
-    radial-gradient(1100px 520px at 50% -12%, rgba(255, 125, 39, 0.16), transparent 58%),
+    radial-gradient(1100px 520px at 50% -12%, rgba(39, 179, 255, 0.18), transparent 58%),
     var(--background);
 }
 
@@ -77,7 +77,7 @@ html.dark body {
   justify-content: center;
   height: 2.35rem;
   border-radius: 999px;
-  background: #ff7d27;
+  background: #27b3ff;
   color: #fff;
   padding: 0 1.2rem;
   font-size: 0.72rem;
@@ -89,7 +89,7 @@ html.dark body {
 
 .btn-primary:hover {
   transform: translateY(-1px);
-  background: #ef6c16;
+  background: #129fe8;
 }
 
 .btn-ghost {
@@ -121,13 +121,13 @@ html.dark body {
 }
 
 .cta-band {
-  background: linear-gradient(180deg, #fff8f3, #fff1e8);
-  border: 1px solid rgba(255, 125, 39, 0.14);
+  background: linear-gradient(180deg, #eef9ff, #d7f0ff);
+  border: 1px solid rgba(39, 179, 255, 0.2);
 }
 
 html.dark .cta-band {
-  background: linear-gradient(180deg, #1a1410, #221910);
-  border-color: rgba(255, 125, 39, 0.18);
+  background: linear-gradient(180deg, #10202c, #0d2838);
+  border-color: rgba(39, 179, 255, 0.22);
 }
 
 .inset-well {

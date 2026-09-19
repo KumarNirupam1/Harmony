@@ -17,11 +17,26 @@ function worldToCanvas(
   xmax: number,
   ymax: number,
 ) {
-  const pad = 16;
+  const pad = 28;
   return [
     pad + (x / xmax) * (w - pad * 2),
     h - pad - (y / ymax) * (h - pad * 2),
   ] as const;
+}
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
+
+function samplePos(traj: number[][][], t: number, vIdx: number) {
+  const last = traj.length - 1;
+  const i0 = Math.max(0, Math.min(last, Math.floor(t)));
+  const i1 = Math.min(last, i0 + 1);
+  const f = t - i0;
+  const p0 = traj[i0]?.[vIdx];
+  const p1 = traj[i1]?.[vIdx] ?? p0;
+  if (!p0) return null;
+  return [lerp(p0[0], p1[0], f), lerp(p0[1], p1[1], f)] as const;
 }
 
 export function MissionCanvas({ mission, frame, className }: Props) {
@@ -47,7 +62,16 @@ export function MissionCanvas({ mission, frame, className }: Props) {
       const dark = document.documentElement.classList.contains("dark");
 
       ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = dark ? "#140c08" : "#fff8f3";
+      const ocean = ctx.createLinearGradient(0, 0, 0, h);
+      if (dark) {
+        ocean.addColorStop(0, "#0a1620");
+        ocean.addColorStop(1, "#061018");
+      } else {
+        ocean.addColorStop(0, "#16384c");
+        ocean.addColorStop(0.55, "#122f40");
+        ocean.addColorStop(1, "#0e2634");
+      }
+      ctx.fillStyle = ocean;
       ctx.fillRect(0, 0, w, h);
 
       const mag = field.mag;
@@ -67,35 +91,61 @@ export function MissionCanvas({ mission, frame, className }: Props) {
             xmax,
             ymax,
           );
-          const a = 0.08 + mag[j][i] / maxMag * 0.35;
-          ctx.fillStyle = `rgba(255, 125, 39, ${a})`;
+          const n = mag[j][i] / maxMag;
+          ctx.fillStyle = `rgba(39, 179, 255, ${0.04 + n * 0.22})`;
           ctx.fillRect(cx, cy2, Math.max(1, cx2 - cx + 1), Math.max(1, cy - cy2 + 1));
         }
       }
 
-      ctx.strokeStyle = dark ? "rgba(255, 180, 120, 0.35)" : "rgba(120, 50, 20, 0.22)";
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
       ctx.lineWidth = 1;
+      ctx.font = "500 9px ui-sans-serif, system-ui";
+      ctx.fillStyle = "rgba(255,255,255,0.28)";
+      for (let g = 0; g <= 5; g++) {
+        const x = 28 + ((w - 56) * g) / 5;
+        const y = 28 + ((h - 56) * g) / 5;
+        ctx.beginPath();
+        ctx.moveTo(x, 28);
+        ctx.lineTo(x, h - 28);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(28, y);
+        ctx.lineTo(w - 28, y);
+        ctx.stroke();
+        if (g < 5) ctx.fillText(`${((xmax * g) / 5).toFixed(0)}`, x + 3, h - 14);
+      }
+      ctx.fillText("x (km)", w - 52, h - 14);
+      ctx.save();
+      ctx.translate(14, h / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("y (km)", 0, 0);
+      ctx.restore();
+
+      ctx.strokeStyle = "rgba(186, 222, 240, 0.28)";
+      ctx.lineWidth = 0.8;
       for (let j = 0; j < rows; j += 3) {
         for (let i = 0; i < cols; i += 3) {
           const [cx, cy] = worldToCanvas(field.x[i], field.y[j], w, h, xmax, ymax);
           const u = field.u[j][i];
           const vel = field.v[j][i];
-          const len = Math.hypot(u, vel) || 1;
-          const dx = (u / len) * 9;
-          const dy = (-vel / len) * 9;
+          const speed = Math.hypot(u, vel) || 1;
+          const dx = (u / speed) * 7;
+          const dy = (-vel / speed) * 7;
           ctx.beginPath();
-          ctx.moveTo(cx - dx * 0.4, cy - dy * 0.4);
+          ctx.moveTo(cx - dx, cy - dy);
           ctx.lineTo(cx + dx, cy + dy);
           ctx.stroke();
         }
       }
 
       const t = Math.min(frame, random.trajectory.length - 1);
-      ctx.fillStyle = dark ? "rgba(255,236,220,0.72)" : "rgba(40,28,22,0.55)";
+      const iEnd = Math.min(random.trajectory.length - 1, Math.floor(t) + 1);
+
+      ctx.fillStyle = "rgba(236, 244, 248, 0.55)";
       for (const p of debris ?? []) {
         const [cx, cy] = worldToCanvas(p[0], p[1], w, h, xmax, ymax);
         ctx.beginPath();
-        ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+        ctx.arc(cx, cy, 1.15, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -107,13 +157,13 @@ export function MissionCanvas({ mission, frame, className }: Props) {
       ) => {
         ctx.strokeStyle = color;
         ctx.lineWidth = width;
-        ctx.setLineDash(dashed ? [6, 5] : []);
+        ctx.setLineDash(dashed ? [5, 5] : []);
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
         const vessels = traj[0]?.length ?? 0;
         for (let vIdx = 0; vIdx < vessels; vIdx++) {
           ctx.beginPath();
-          for (let k = 0; k <= t; k++) {
+          for (let k = 0; k <= iEnd; k++) {
             const [cx, cy] = worldToCanvas(
               traj[k][vIdx][0],
               traj[k][vIdx][1],
@@ -130,30 +180,47 @@ export function MissionCanvas({ mission, frame, className }: Props) {
         ctx.setLineDash([]);
       };
 
-      drawPath(random.trajectory, "#ff7d27", true, 1.6);
-      drawPath(optimized.trajectory, dark ? "#f4ece6" : "#1a1a1a", false, 2.4);
+      drawPath(random.trajectory, "rgba(212, 168, 110, 0.85)", true, 1.4);
+      ctx.shadowColor = "rgba(39, 179, 255, 0.35)";
+      ctx.shadowBlur = 8;
+      drawPath(optimized.trajectory, "#27b3ff", false, 2);
+      ctx.shadowBlur = 0;
 
-      const markers = (traj: number[][][], fill: string) => {
-        traj[t]?.forEach((p) => {
-          const [cx, cy] = worldToCanvas(p[0], p[1], w, h, xmax, ymax);
-          ctx.fillStyle = fill;
+      const drawMarker = (traj: number[][][], color: string) => {
+        const vessels = traj[0]?.length ?? 0;
+        for (let vIdx = 0; vIdx < vessels; vIdx++) {
+          const pos = samplePos(traj, t, vIdx);
+          if (!pos) continue;
+          const prev = samplePos(traj, Math.max(0, t - 1), vIdx) ?? pos;
+          const [cx, cy] = worldToCanvas(pos[0], pos[1], w, h, xmax, ymax);
+          const angle = Math.atan2(-(pos[1] - prev[1]), pos[0] - prev[0]);
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(angle);
+          ctx.fillStyle = color;
           ctx.beginPath();
-          ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+          ctx.moveTo(7, 0);
+          ctx.lineTo(-5, 3.4);
+          ctx.lineTo(-3.2, 0);
+          ctx.lineTo(-5, -3.4);
+          ctx.closePath();
           ctx.fill();
-          ctx.strokeStyle = dark ? "#140c08" : "#fff";
-          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "rgba(255,255,255,0.7)";
+          ctx.lineWidth = 0.8;
           ctx.stroke();
-        });
-        traj[traj.length - 1]?.forEach((p) => {
-          const [cx, cy] = worldToCanvas(p[0], p[1], w, h, xmax, ymax);
-          ctx.strokeStyle = fill;
-          ctx.lineWidth = 1.4;
-          ctx.strokeRect(cx - 4, cy - 4, 8, 8);
-        });
+          ctx.restore();
+        }
       };
 
-      markers(random.trajectory, "#ff7d27");
-      markers(optimized.trajectory, dark ? "#f4ece6" : "#1a1a1a");
+      drawMarker(random.trajectory, "#c4924a");
+      drawMarker(optimized.trajectory, "#27b3ff");
+
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.strokeRect(28, 28, w - 56, h - 56);
+
+      ctx.fillStyle = "rgba(255,255,255,0.38)";
+      ctx.font = "500 10px ui-sans-serif, system-ui";
+      ctx.fillText("Double-gyre velocity field  ·  surface layer", 32, 18);
     };
 
     paint();
@@ -168,22 +235,28 @@ export function MissionCanvas({ mission, frame, className }: Props) {
   }, [mission, frame]);
 
   const horizon = mission.params.horizon;
+  const hour = Math.min(horizon, Math.floor(frame));
 
   return (
     <div className={`relative overflow-hidden rounded-[28px] ${className ?? ""}`}>
       <canvas ref={ref} className="absolute inset-0 h-full w-full" />
-      <div className="pointer-events-none absolute top-4 right-4 rounded-2xl border border-border bg-panel/90 px-3 py-2 text-[11px] shadow-sm backdrop-blur">
+      <div className="pointer-events-none absolute top-4 right-4 rounded-xl border border-white/10 bg-black/40 px-3 py-2 text-[11px] text-white/90 backdrop-blur-md">
+        <p className="mb-1.5 text-[10px] tracking-[0.18em] text-white/50 uppercase">Legend</p>
         <div className="flex items-center gap-2">
-          <span className="inline-block h-px w-4 border-t-2 border-dashed border-accent" />
+          <span className="inline-block h-px w-4 border-t border-dashed border-[#c4924a]" />
           Random patrol
         </div>
         <div className="mt-1 flex items-center gap-2">
-          <span className="inline-block h-0.5 w-4 bg-foreground" />
+          <span className="inline-block h-px w-4 bg-[#27b3ff]" />
           Harmony
         </div>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="inline-block h-1 w-1 rounded-full bg-white/70" />
+          Debris
+        </div>
       </div>
-      <div className="pointer-events-none absolute bottom-4 left-4 rounded-full border border-border bg-panel/90 px-3 py-1.5 font-mono text-[11px]">
-        t = {frame}h / {horizon}h
+      <div className="pointer-events-none absolute right-4 bottom-4 rounded-md border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-[11px] text-white/80 backdrop-blur-md">
+        t = {hour} h / {horizon} h
       </div>
     </div>
   );

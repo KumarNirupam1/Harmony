@@ -6,7 +6,10 @@ export default function Privacy() {
         <div className="flex min-h-full flex-1 flex-col bg-background">
             <Navbar />
             <main className="mx-auto w-full max-w-2xl flex-1 px-6 pt-20 pb-16">
-                <h1 className="font-display text-5xl tracking-tight">Privacy Policy</h1>
+                <p className="text-[11px] font-semibold tracking-[0.24em] text-accent uppercase">
+                    Legal
+                </p>
+                <h1 className="font-display mt-2 text-5xl tracking-tight">Privacy Policy</h1>
                 <p className="mt-6 text-sm leading-7 text-muted">
                     Harmony is a mission-planning UI. Visualization runs in your browser.
                     When you press Run mission, fleet parameters are sent to the Harmony API

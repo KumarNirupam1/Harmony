@@ -8,7 +8,7 @@ export function Footer() {
           <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-[10px] text-white">
             ~
           </span>
-          <span>© 2026 Harmony. Differentiable fleet planning. No boats stored.</span>
+          <span>© 2026 Harmony. Differentiable fleet planning for ocean cleanup.</span>
         </p>
         <nav className="flex items-center gap-4 sm:justify-center">
           <Link className="hover:text-foreground" href="/privacy">

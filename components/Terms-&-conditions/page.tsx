@@ -6,17 +6,20 @@ export default function Terms() {
         <div className="flex min-h-full flex-1 flex-col bg-background">
             <Navbar />
             <main className="mx-auto w-full max-w-2xl flex-1 px-6 pt-20 pb-16">
-                <h1 className="font-display text-5xl tracking-tight">Terms of Service</h1>
+                <p className="text-[11px] font-semibold tracking-[0.24em] text-accent uppercase">
+                    Legal
+                </p>
+                <h1 className="font-display mt-2 text-5xl tracking-tight">Terms of Service</h1>
                 <p className="mt-6 text-sm leading-7 text-muted">
                     Harmony is mission software for planning, not a navigation or autopilot
                     system. Routes are decision support. Local crews remain responsible for
                     seamanship, safety, and compliance with maritime law.
                 </p>
                 <p className="mt-4 text-sm leading-7 text-muted">
-                    Benchmark metrics (+50% recovery, ≤60% fuel saved) describe the double-gyre
-                    experiment in this repository. They are not a guarantee for any real ocean
-                    basin. The service is provided as-is for the First Commit hackathon
-                    demonstration.
+                    Benchmark metrics (+17% recovery, 63% control effort saved) describe the
+                    double-gyre experiment in this repository. They are not a guarantee for any
+                    real ocean basin. The service is provided as-is for the First Commit
+                    hackathon demonstration.
                 </p>
                 <p className="mt-4 text-sm leading-7 text-muted">Team Titan · 2026.</p>
             </main>
