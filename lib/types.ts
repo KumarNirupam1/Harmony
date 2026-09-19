@@ -1,3 +1,5 @@
+export type Objective = "balanced" | "max_collection" | "min_control_effort";
+
 export type MissionRequest = {
   num_vessels: number;
   horizon: number;
@@ -6,6 +8,8 @@ export type MissionRequest = {
   seed: number;
   debris_count: number;
   debris_spread: number;
+  objective?: Objective;
+  boundary_penalty?: boolean;
 };
 
 export type Trajectory = number[][][]; // [time][vessel][x, y]

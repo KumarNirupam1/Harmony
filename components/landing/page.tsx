@@ -20,7 +20,7 @@ export default function Landing() {
                     <p className="mt-6 max-w-2xl text-[1rem] leading-7 text-muted">
                         An editorial, serverless mission planner for ocean-cleanup fleets. Routes
                         are learned by riding gyres instead of fighting them — so debris is
-                        intercepted while fuel stays in the tank.
+                        intercepted while control effort stays in reserve.
                     </p>
                     <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
                         <Link href="/planner" className="btn-primary">
@@ -37,8 +37,8 @@ export default function Landing() {
 
                 <section id="metrics" className="mx-auto grid w-full max-w-5xl gap-4 px-6 pb-24 sm:grid-cols-3">
                     {[
-                        { value: "+50%", label: "Recovery gain", sub: "vs random patrol" },
-                        { value: "≤ 60%", label: "Fuel saved", sub: "riding, not fighting, the flow" },
+                        { value: "+17%", label: "Recovery gain", sub: "vs random patrol — on the live benchmark" },
+                        { value: "63%", label: "Control effort saved", sub: "riding, not fighting, the flow" },
                         { value: "< 5s", label: "Time to plan", sub: "one Lambda, zero servers" },
                     ].map((k) => (
                         <div key={k.label} className="soft-card px-6 py-7">

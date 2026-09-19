@@ -4,13 +4,21 @@ from .ocean_field import OceanField
 from .particle_simulator import ParticleSimulator
 
 class RouteOptimizer(nn.Module):
-    def __init__(self, field: OceanField, num_vessels=3, steps=72, dt=1.0):
+    DOMAIN_MAX = 50.0  # world bounds match the runner's 0..50 domain
+
+    def __init__(self, field: OceanField, num_vessels=3, steps=72, dt=1.0,
+                 w_collection: float = 1.0, w_fuel: float = 0.001,
+                 boundary_penalty: bool = False, w_boundary: float = 0.01):
         super().__init__()
         self.field = field
         self.num_vessels = num_vessels
         self.steps = steps
         self.dt = dt
         self.device = field.device
+        self.w_collection = w_collection
+        self.w_fuel = w_fuel
+        self.boundary_penalty = boundary_penalty
+        self.w_boundary = w_boundary
         
         # Learnable parameters: Controls for 3 vessels over 72 steps
         # Shape: (Steps, NumVessels, 2)
@@ -26,6 +34,7 @@ class RouteOptimizer(nn.Module):
         debris_pos = initial_debris_pos.clone() # (M, 2)
         
         total_collected = 0.0
+        total_boundary = 0.0
         
         # Hyperparameters
         sigma = 5.0 # Capture radius (soft)
@@ -44,6 +53,12 @@ class RouteOptimizer(nn.Module):
             thrust = 1.5 * torch.tanh(raw_thrust)
             
             vessel_pos = ParticleSimulator.step_vessels(vessel_pos, v_current, thrust, self.dt)
+            
+            # 2b. Boundary penalty (differentiable) — keep the fleet inside the domain
+            if self.boundary_penalty:
+                viol_low = torch.relu(-vessel_pos)
+                viol_high = torch.relu(vessel_pos - self.DOMAIN_MAX)
+                total_boundary = total_boundary + ((viol_low + viol_high) ** 2).sum()
             
             # 3. Collection Reward
             # Compute distance matrix between Vessels (3) and Debris (M)
@@ -72,11 +87,13 @@ class RouteOptimizer(nn.Module):
         # But penalizing parameter is cleaner for optimization surface
         loss_fuel = torch.sum(self.controls ** 2)
         
-        w_coll = 1.0
+        w_coll = self.w_collection
         # Fuel weight set low to encourage active tracking of debris
-        w_fuel = 0.001 
+        w_fuel = self.w_fuel
         
         loss = w_coll * loss_collection + w_fuel * loss_fuel
+        if self.boundary_penalty:
+            loss = loss + self.w_boundary * total_boundary
         
         logs = {
             "loss": loss.item(),

@@ -21,6 +21,7 @@ API_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(API_ROOT))
 
 from app.runner import MissionParams, run_mission  # noqa: E402
+from app.explain import explain_mission  # noqa: E402
 
 
 class MissionRequest(BaseModel):
@@ -31,6 +32,8 @@ class MissionRequest(BaseModel):
     seed: int = Field(42, ge=0, le=1_000_000)
     debris_count: int = Field(200, ge=50, le=1000)
     debris_spread: float = Field(15.0, ge=1.0, le=50.0)
+    objective: str = Field("balanced", pattern="^(balanced|max_collection|min_control_effort)$")
+    boundary_penalty: bool = Field(False)
 
 
 app = FastAPI(title="Aqualign Ocean Cleanup API", version="1.0.0")
@@ -113,6 +116,8 @@ def mission(req: MissionRequest):
                 seed=req.seed,
                 debris_count=req.debris_count,
                 debris_spread=req.debris_spread,
+                objective=req.objective,
+                boundary_penalty=req.boundary_penalty,
             )
         )
     except Exception as exc:  # noqa: BLE001
@@ -125,3 +130,14 @@ def mission(req: MissionRequest):
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     return result
+
+
+class ExplainRequest(BaseModel):
+    params: MissionRequest
+    metrics: dict
+
+
+@app.post("/api/explain")
+def explain(req: ExplainRequest):
+    """Copilot: explains a finished mission in plain English (LLM sidecar)."""
+    return explain_mission(req.params.model_dump(), req.metrics)

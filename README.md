@@ -1,68 +1,122 @@
-# 🌊 Aqualign — Order from Chaos
+# Aqualign — ride the current. waste nothing.
 
-**Mission planning for ocean-cleanup fleets.** A differentiable physics engine
-that routes vessels to *ride* ocean currents instead of fighting them.
+A serverless mission planner for ocean-cleanup fleets. A differentiable
+physics engine unrolls ocean advection (RK4) as a PyTorch computation graph and
+**gradient-tunes vessel control sequences** so cleanup crews ride gyres instead
+of fighting them. Try it against a random patrol on the same, identical current
+field and watch the numbers move.
 
-> Built at the **First Commit | Bharat Builds Tour** hackathon (WeMakeDevs × AWS).
-> Team **Titan** · Team code `BP57CZ`
+Built for **First Commit | Bharat Builds Tour** (WeMakeDevs × AWS) — Team Titan
+(Team code `BP57CZ`).
 
-![build](https://img.shields.io/badge/build-passing-brightgreen)
-![license](https://img.shields.io/badge/license-Apache%202.0-blue)
-![ts](https://img.shields.io/badge/TypeScript-Next.js%2016-blue)
-![aws](https://img.shields.io/badge/AWS-Ship%20It-FF9900)
+```
+Web (Next.js static export, S3 + CloudFront)
+        │  POST /mission            GET /api/missions
+        ▼
+API Gateway ──► Lambda container ──► PyTorch rollout (CPU)
+                (FastAPI, Web Adapter)      │
+                                           ├── DynamoDB  mission history
+                                           └── S3        ocean current data
+```
 
-## The problem
+## The loop
 
-8M tons of plastic enter the ocean every year — and it never sits still. It
-rides gyres, eddies and jets. Cleanup crews that "drive straight at the trash"
-burn fuel fighting the current that moves it. Aqualign inverts this: treat the
-ocean as a **differentiable vector field**, unroll the physics forward in time,
-and **backpropagate capture/fuel loss through every step** to learn intercept
-routes. Random patrol vs learned rout → up to **+50% recovery** and **≤60% fuel
-saved** in the double-gyre benchmark.
+1. Configure a fleet (vessels, horizon, debris spread, seed).
+2. `POST /mission` → the engine runs **Random Patrol** (baseline) and
+   **Aqualign** (Adam over the full rollout) on the same currents.
+3. Replay both animated side-by-side; scrub the timeline; read KPIs:
+   debris recovered, **control effort** used, efficiency gain, domain coverage,
+   first-capture hour — plus a loss-over-iterations sparkline proving the
+   gradient walked there.
 
-## Quickstart
+Reference results (double-gyre benchmark, seed 42, 200 debris, 3 vessels, 72h):
+
+| Metric | Random patrol | Aqualign | Δ |
+| --- | --- | --- | --- |
+| Debris recovered | 6 | 7 | **+16.7%** |
+| Control effort | 450.4 | 164.2 | **−63.5%** |
+| First capture | hour 9 | hour 4 | earlier |
+
+## Repo layout
+
+```
+api/                  FastAPI service + engine
+  aqualign/             differentiator (ocean_field, particle_simulator, optimizer)
+  app/                  main.py (HTTP), runner.py (headless), explain.py (LLM copilot)
+  scripts/              generate_data.py (synthetic), fetch_real_data.py (OSCAR real currents)
+  tests/                smoke tests
+  Dockerfile            Lambda container (Web Adapter)
+app/  components/  lib/   Next.js 16 static-export UI
+data/                     ocean current .npz (u,v,x,y) + sample responses
+infra/                    SAM template + deploy scripts (API, web)
+docs/                     product spec, API contract, task plan, judging, video script
+archive/                  original upstream Aqualign (provenance)
+```
+
+## Run locally
 
 ```bash
-npm install          # web app (Next.js 16 · TypeScript · Tailwind v4)
-npm run dev          # ui → http://localhost:3000
+# 1. API (engine) — needs Python 3.11+ with torch
+cd api && pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --port 8000   # POST localhost:8000/mission
 
-# Simulation API (Python + PyTorch engine)
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r api/requirements.txt
-npm run dev:api      # FastAPI → http://localhost:8000   (POST /mission)
+# 2. Web — Node 20+
+npm install
+npm run dev                    # http://localhost:3000 (calls :8000)
 ```
 
-## Repository layout
+Offline-safe: if the API is unreachable the UI falls back to a seeded mock
+(`lib/mock-mission.ts`); `NEXT_PUBLIC_API_URL` points the app at the live
+Lambda URL.
 
-```
-app/                 Next.js 16 web app (the product)      → S3 + CloudFront
-api/                 FastAPI + PyTorch engine (Lambda container)
-  ├─ aqualign/       ocean current tracking · RK4 · gradient optimizer
-  └─ app/            FastAPI routes + headless JSON runner
-data/                double-gyre ocean field (gulf_stream.npz)  → also S3
-infra/
-  ├─ sam-template.yaml   serverless stack: API + Lambda + DynamoDB + S3
-  └─ scripts/            deploy-api.sh · deploy-web.sh · dev.sh
-docs/                ARCHITECTURE · JUDGING · VIDEO_SCRIPT · PRODUCT
-archive/             original Streamlit dashboard + legacy scaffold
-```
+## Real ocean data (Bay of Bengal)
 
-## Ship It — deploy on AWS (free tier)
+`data/gulf_stream.npz` ships with a synthetic double-gyre field. To use real
+surface currents from NASA OSCAR:
 
 ```bash
-./infra/scripts/deploy-api.sh   # builds & pushes the Lambda container, SAM deploy
-./infra/scripts/deploy-web.sh   # static export → S3 + CloudFront
+pip install xarray netCDF4 requests
+python api/scripts/fetch_real_data.py --region bay-of-bengal --write data/gulf_stream.npz
 ```
 
-See **docs/ARCHITECTURE.md** for the full AWS story and **docs/JUDGING.md** for
-how the stack maps to the judging criteria. Local (Build It) path: the identical
-stack runs via SAM/LocalStack without an AWS account (see ARCHITECTURE §5).
+The engine only reads `u/v/x/y` arrays, so it is dataset-agnostic. A backup of
+the synthetic field is kept as `data/gulf_stream_synthetic_backup.npz`. Set
+`AQUALIGN_DATA` to switch files.
 
-## Team
+## Deploy on AWS
 
-- **Sanket Singh** — lead
-- **Kumar Nirupam**
+Prereqs: AWS CLI, SAM CLI, Docker Desktop (running).
 
-<small>Originally built for the Tesseract hackathon; evolved here into a shipped,
-serverless product at First Commit.</small>
+```bash
+aws configure                      # friend/your IAM keys + region (us-east-1)
+aws sts get-caller-identity        # must return an identity, not an error
+
+# 1. API — first run builds the PyTorch container (~15–30 min; don't Ctrl+C)
+./infra/scripts/deploy-api.sh      # prints API URL: https://…execute-api…
+
+# 2. Web — static export to S3 + CloudFront
+NEXT_PUBLIC_API_URL=https://… ./infra/scripts/deploy-web.sh   # prints CloudFront URL
+
+# 3. LLM copilot (optional) — the 3-second explainer
+aws ssm put-parameter --name /aqualign/openai-key --type SecureString --value sk-…
+curl -X POST https://…/api/explain -H "Content-Type: application/json" \
+  -d '{"params":{…},"metrics":{…}}'
+```
+
+Stack: API Gateway (HTTP API) → Lambda container (FastAPI on the Web Adapter,
+CPU PyTorch) → DynamoDB mission store + S3 data bucket; web = S3 + CloudFront,
+CORS-open. No duplicated claims: only what you see here is what we say we built.
+
+## Learnings (what this repo exists to show)
+
+- **Differentiable physics isn't just for ML**: treating an ODE rollout as a
+  computation graph means the *gradient* itself plans routes — metrics are
+  computed, not imputed.
+- **Capture objectives need care**: a soft Gaussian collection reward ≠ a hard
+  capture count; the gap between the two is measurable (see `docs/TASKS.md` §22).
+- **Serverless + heavy runtime works**: a PyTorch CPU container behind Lambda's
+  Web Adapter holds ~2–5 s mission solves; no GPU, no EC2.
+- **Static export keeps the UI safe**: S3 + CloudFront for the frontend means no
+  origin server to babysit on demo day.
+
+See `docs/PRODUCT.md` and `docs/ARCHITECTURE.md` for the full write-up.

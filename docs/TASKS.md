@@ -37,27 +37,39 @@ New / changed fields:
 
 ## BACKEND — owner: Nirupam (for reference, so FE knows the inputs)
 
-### B1. Metric enrichment in `api/app/runner.py`
-- Track per-frame capture masks → `captures_over_time` for both strategies.
-- Compute `coverage_pct` (discretize domain, mark units within capture radius).
-- Compute `first_capture_hour`, `unique_captures`, current-assisted drift.
-- Replace `fuel` with `control_effort` everywhere (incl. `optimization_history`).
-- Re-run `python -m api.scripts.run_smoke` (or a manual `/mission` call) and
-  confirm the −63% control-effort story still holds.
+### B0. Deploy (blocked on AWS creds — friend)
+`aws configure` → `aws sts get-caller-identity` → `./infra/scripts/deploy-api.sh`
+→ smoke `POST /mission` live → `NEXT_PUBLIC_API_URL=<ApiUrl> ./infra/scripts/deploy-web.sh`
+→ E2E: DynamoDB `missionId` present, `/api/missions` lists it, `/api/explain`
+returns a source (openai after key is set).
 
-### B2. Persistence in `api/app/main.py`
-- `POST /mission`: write result to DynamoDB (`AQUALIGN_TABLE`, key `missionId`),
-  store params + metrics + a compact payload (NO full trajectories), return
-  `meta.mission_id`.
-- `GET /api/missions`: scan table, return recent summaries desc by `createdAt`.
-- Add `boto3` to `api/requirements.txt`.
-- Local dev: no table → log a warning and continue (never break the sim).
+### B1. Metric enrichment ✓ done (Sept 19, commit 78d2c7a)
+`control_effort` (was `fuel`), `captures_over_time`, `coverage_pct`,
+`first_capture_hour`, `unique_captures`, `current_assisted_distance`.
 
-### B3. Deploy
-- `aws configure`, set region, `./infra/scripts/deploy-api.sh`, get `ApiUrl`
-  from the stack output, set `NEXT_PUBLIC_API_URL` for the web build,
-  `./infra/scripts/deploy-web.sh`. E2E: `/health` then `POST /mission` on the
-  live URL, confirm DynamoDB row appears.
+### B2. Persistence ✓ done (commit 78d2c7a)
+DynamoDB saves + `GET /api/missions`. Still needs a LIVE table verification.
+
+### B3. Contract flip ✓ done — FE must adopt the new keys (see contract change).
+
+### B4. Mission copilot ✓ done (backend)
+`POST /api/explain` → gpt-4o-mini via OpenAI, key in SSM `/aqualign/openai-key`,
+static fallback when unconfigured. Wire the key after deploy:
+`aws ssm put-parameter --name /aqualign/openai-key --type SecureString --value sk-…`
+
+### B5. Real ocean data ✓ script written (not yet run — needs torch box)
+`pip install xarray netCDF4 requests && python api/scripts/fetch_real_data.py --region bay-of-bengal --write data/gulf_stream.npz`
+Backs up the synthetic field first. **Remember to re-run a mission + regen
+sample-mission.json after swapping the field** and sanity-check the money-shot.
+
+### B6. Landing stats aligned to the measured benchmark (+17% / 63%) ✓ done.
+
+### B7. Smoke tests + CI ✓ done — `pytest api/tests`.
+
+### B8. Objective presets + boundary penalty ✓ done (behind flags, default off)
+`objective: balanced | max_collection | min_control_effort` +
+`boundary_penalty: bool` accepted by `POST /mission`. `balanced` == the exact
+former behavior, so the −63% money-shot is untouched unless a caller opts in.
 
 ---
 
@@ -107,6 +119,12 @@ Use **hand-rolled SVG** (no chart lib — repo ships only Next/React/Tailwind).
 ### F6. Build gate
 - `npm run build` GREEN before the day ends (static export, all fetches
   client-side). Then the FE owner reviews the video cut.
+
+### F7. Copilot button (optional, low effort)
+- "Explain this mission" button under the KPI strip → `POST /api/explain`
+  with `{params: mission.params, metrics: mission.metrics}` → render the
+  `explanation` string in a soft-card. No loaders needed beyond a tiny spinner;
+  it always returns 200 (`source: "openai"` or `"static"`).
 
 ---
 

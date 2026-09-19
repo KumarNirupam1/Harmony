@@ -41,6 +41,8 @@ Resources:
             BucketName: !Ref DataBucket
         - S3WritePolicy:
             BucketName: !Ref DataBucket
+        - SSMParameterReadPolicy:
+            ParameterName: /aqualign/openai-key
         - CloudWatchLambdaInsightsExecutionRolePolicy: {}
     Metadata:
       DockerContext: ../../

@@ -23,6 +23,12 @@ DATA_PATH = os.environ.get(
 )
 CAPTURE_RADIUS = 1.0
 
+OBJECTIVES = {
+    "balanced": {"w_collection": 1.0, "w_fuel": 0.001},
+    "max_collection": {"w_collection": 1.0, "w_fuel": 0.0001},
+    "min_control_effort": {"w_collection": 0.8, "w_fuel": 0.02},
+}
+
 
 @dataclass
 class MissionParams:
@@ -33,6 +39,8 @@ class MissionParams:
     seed: int = 42
     debris_count: int = 200
     debris_spread: float = 15.0
+    objective: str = "balanced"
+    boundary_penalty: bool = False
 
 
 def _field_sample(field: OceanField, grid: int = 25) -> Dict:
@@ -132,7 +140,16 @@ def run_mission(params: MissionParams = MissionParams()) -> Dict:
     random = _simulate_strategy(field, random_controls, 1.0, initial_vessels, debris, steps, dt)
 
     # ---- Aqualign gradient optimization ----
-    opt = RouteOptimizer(field, params.num_vessels, steps, dt)
+    weights = OBJECTIVES.get(params.objective, OBJECTIVES["balanced"])
+    opt = RouteOptimizer(
+        field,
+        params.num_vessels,
+        steps,
+        dt,
+        w_collection=weights["w_collection"],
+        w_fuel=weights["w_fuel"],
+        boundary_penalty=params.boundary_penalty,
+    )
     history = opt.run_optimization(initial_vessels, debris, iterations=params.iterations, lr=params.learning_rate)
     final_controls = opt.controls.detach()
     optimized = _simulate_strategy(field, final_controls, 1.5, initial_vessels, debris, steps, dt)

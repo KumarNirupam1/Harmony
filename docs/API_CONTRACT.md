@@ -12,9 +12,15 @@ Backend owner: **Kumar Nirupam** · Contract frozen · Changes only via both-of-
 | `GET` | `/health` | — | `{"status":"ok","service":"aqualign-api"}` |
 | `POST` | `/mission` | JSON (below) | Full mission result (below) |
 | `GET` | `/api/missions?limit=12` | — | `{"missions":[{missionId, createdAt, params, metrics}}]}` |
+| `POST` | `/api/explain` | `{params, metrics}` | `{"explanation","source":"openai"\|"static"}` |
 
 CORS: `allow-origins: *` — any origin can call from the browser, including your
 localhost dev server.
+
+> **`/api/explain`** — the LLM copilot. Send the finished mission's `params` +
+> `metrics` (compact, no trajectories). Returns a 2–3 sentence plain-English
+> explanation of why the optimized route won. Always 200: `source: "static"`
+> means no key/no network — render the text as-is.
 
 ## 2 / Request (`POST /mission`)
 
@@ -26,7 +32,9 @@ localhost dev server.
   "learning_rate": 0.1,  // 0.01..0.5
   "seed": 42,            // deterministic runs
   "debris_count": 200,   // 50..1000
-  "debris_spread": 15.0  // 1..50 (how scattered the debris starts)
+  "debris_spread": 15.0, // 1..50 (how scattered the debris starts)
+  "objective": "balanced",       // balanced | max_collection | min_control_effort
+  "boundary_penalty": false      // optional — keep the fleet inside the 0..50 domain
 }
 ```
 

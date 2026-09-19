@@ -1,0 +1,26 @@
+node_modules
+.git
+.gitignore
+.github
+out
+docs
+archive
+infra
+# build context only needs api/ and data/
+api/app/__pycache__
+api/aqualign/__pycache__
+**/__pycache__
+**/*.pyc
+*.md
+package.json
+package-lock.json
+tsconfig.json
+next-env.d.ts
+next.config.ts
+components
+app
+lib
+public
+eslint.config.mjs
+postcss.config.mjs
+.gitattributes
