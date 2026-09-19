@@ -83,7 +83,8 @@ def _save_mission(result: dict) -> Optional[str]:
             }
         )
         return mission_id
-    except Exception:  # noqa: BLE001 — never break the simulation response
+    except Exception as exc:  # noqa: BLE001 — never break the simulation response
+        print(f"WARN mission save skipped: {type(exc).__name__}: {exc}")
         return None
 
 
