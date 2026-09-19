@@ -123,18 +123,34 @@ def _save_mission(result: dict) -> Optional[str]:
 @app.get("/api/missions")
 def list_missions(limit: int = 12):
     """Recent mission summaries (params + metrics only, no trajectories)."""
-    table = _mission_table()
-    if table is None:
+    table_name = os.environ.get("HARMONY_TABLE")
+    rows: list = []
+    if not table_name:
         return {"missions": []}
     try:
-        scan = table.scan(ProjectionExpression="missionId, createdAt, params, metrics")
-        rows = sorted(
-            scan.get("Items", []), key=lambda r: r.get("createdAt", ""), reverse=True
-        )[: max(1, min(limit, 50))]
-        return {"missions": [_from_ddb(r) for r in rows]}
+        import boto3
+        from boto3.dynamodb.types import TypeDeserializer
+
+        region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "us-east-1"
+        client = boto3.client("dynamodb", region_name=region)
+        des = TypeDeserializer()
+        items: list = []
+        kwargs = {
+            "TableName": table_name,
+            "ProjectionExpression": "missionId, createdAt, params, metrics",
+        }
+        while True:
+            resp = client.scan(**kwargs)
+            items.extend(resp.get("Items", []))
+            if "LastEvaluatedKey" not in resp:
+                break
+            kwargs["ExclusiveStartKey"] = resp["LastEvaluatedKey"]
+        rows = [_from_ddb({k: des.deserialize(v) for k, v in item.items()}) for item in items]
+        rows.sort(key=lambda r: str(r.get("createdAt", "")), reverse=True)
+        rows = rows[: max(1, min(limit, 50))]
     except Exception as exc:  # noqa: BLE001
         print(f"WARN list missions failed: {type(exc).__name__}: {exc}")
-        return {"missions": []}
+    return {"missions": rows}
 
 
 @app.post("/mission")
