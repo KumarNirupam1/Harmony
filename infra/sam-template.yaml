@@ -43,7 +43,7 @@ Resources:
             BucketName: !Ref DataBucket
         - SSMParameterReadPolicy:
             ParameterName: /harmony/openai-key
-        - CloudWatchLambdaInsightsExecutionRolePolicy: {}
+        - arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy
     Metadata:
       DockerContext: ../
       Dockerfile: api/Dockerfile
