@@ -6,7 +6,7 @@
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0-orange)
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000)
 [![Live Demo](https://img.shields.io/badge/Live-Demo-27b3ff)](https://d32eo4z8j4qsxd.cloudfront.net)
-
+[![Harmony Demo Video](https://img.shields.io/badge/YouTube-Watch%20Demo-red?logo=youtube&logoColor=white)](https://youtu.be/NDpjvjMeKcE)
 > *“We don't fight the ocean; we learn to dance with it.”*
 
 <p align="center">
@@ -206,7 +206,7 @@ python api/scripts/fetch_real_data.py --region bay-of-bengal --write data/gulf_s
 3. Side-by-side animation: Harmony curves into gyre centers, patrol fights the flow
 4. KPI strip: +16.7% recovery, −63.5% control effort + loss sparkline
 5. Objective presets (balanced / max collection / min control effort) + boundary toggle
-6. **Copilot**: "Why did Harmony win?" → OpenAI explanation + `source: openai` badge
+6. **AI Review**: "Why did Harmony win?" → OpenAI explanation + `source: openai` badge
 7. `/history` → DynamoDB rows → **Replay** the same params via `?id=`
 8. Resilience: kill the network → planner still solves the seeded gyre
 
