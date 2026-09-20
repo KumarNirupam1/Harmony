@@ -35,24 +35,24 @@ Legend: `[x]` done · `[ ]` todo · `(owner)` who.
 
 Backend + frontend contracts are live and verified; these are pure React/Next UI.
 
-- [ ] **Objective presets + boundary penalty control** in the planner: backend
+- [x] **Objective presets + boundary penalty control** in the planner: backend
       accepts `objective: balanced|max_collection|min_control_effort` and
       `boundary_penalty: bool` — the UI sends only the 7 base params. Add preset
       chips + a boundary toggle to the form; send in `MissionRequest`.
-- [ ] **Copilot panel** in the planner: `POST /api/explain` is live (source
+- [x] **Copilot panel** in the planner: `POST /api/explain` is live (source
       `openai` with the SSM key). Add a "Why did Harmony win?" button → shows
       `explanation` + `source: openai|static`. Graceful offline fallback.
       Request shape: `{ params: MissionRequest, metrics: MissionMetrics }`.
-- [ ] **History from DynamoDB**: `GET /api/missions` is live and returns
+- [x] **History from DynamoDB**: `GET /api/missions` is live and returns
       `{missionId, createdAt, params, metrics}` (newest first). Merge server rows
       into `components/history` (dedupe on `missionId`), keep local mirror offline.
-- [ ] **Replay from history**: history row → `/planner?id=<missionId>`. Site is
+- [x] **Replay from history**: history row → `/planner?id=<missionId>`. Site is
       `output: export` — read `window.location.search` directly (NOT
       `useSearchParams` without `Suspense`). Restore = POST a new solve with the
       row's `params` (there is no GET-by-id endpoint).
-- [ ] Landing: replace default Next/Vercel SVGs in `public/` with the Harmony
+- [x] Landing: replace default Next/Vercel SVGs in `public/` with the Harmony
       wave mark; add OG image + metadata so share links look right.
-- [ ] Planner copy check after the above: objective label, boundary flag,
+- [x] Planner copy check after the above: objective label, boundary flag,
       copilot chip, "history is in DynamoDB" wording (mostly already updated).
 
 Note: `SavedMission` local rows use `id`; server rows use `missionId` — the
@@ -76,11 +76,11 @@ history merge must map between them.
 - [ ] (optional, strong for judges) Real currents instead of synthetic:
       `pip install xarray netCDF4 requests && python api/scripts/fetch_real_data.py --region bay-of-bengal --write data/gulf_stream.npz`
       Re-run the benchmark; confirm `+17% / 63%` still hold, else update landing numbers.
-- [ ] Offline path: block network → planner still serves the seeded double-gyre
+- [x] Offline path: block network → planner still serves the seeded double-gyre
       mock; no unhandled promise rejection in console.
-- [ ] Dark-mode sanity pass on every page.
-- [ ] Confirm `+17% / 63% / <5s` on landing match the demo benchmark (README table).
-- [ ] CloudFront URL reachable for judges (README top or pinned team message).
+- [x] Dark-mode sanity pass on every page.
+- [x] Confirm `+17% / 63% / <5s` on landing match the demo benchmark (README table).
+- [x] CloudFront URL reachable for judges (README top or pinned team message).
 
 ---
 

@@ -18,10 +18,30 @@ const instrument = Instrument_Serif({
   weight: "400",
 });
 
+const site = "https://d32eo4z8j4qsxd.cloudfront.net";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(site),
   title: "Harmony — Ride the current. Waste nothing.",
   description:
     "Mission planning for ocean-cleanup fleets. A differentiable physics engine that lets vessels ride ocean currents instead of fighting them.",
+  icons: { icon: "/icon.svg" },
+  openGraph: {
+    title: "Harmony — Ride the current. Waste nothing.",
+    description:
+      "Differentiable mission planning for ocean-cleanup fleets. Compare Harmony against a random patrol on the same gyre.",
+    url: site,
+    siteName: "Harmony",
+    type: "website",
+    images: [{ url: "/og.svg", width: 1200, height: 630, alt: "Harmony wave mark" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Harmony — Ride the current. Waste nothing.",
+    description:
+      "Differentiable mission planning for ocean-cleanup fleets.",
+    images: ["/og.svg"],
+  },
 };
 
 export default function RootLayout({

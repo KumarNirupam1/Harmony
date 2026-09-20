@@ -1,15 +1,28 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { runMission } from "@/lib/api";
-import { saveMission } from "@/lib/history";
-import { DEFAULT_MISSION, type MissionRequest, type MissionResult } from "@/lib/types";
+import { fetchMissions, runMission } from "@/lib/api";
+import { findMission, loadMissions, mergeMissions, saveMission } from "@/lib/history";
+import {
+  DEFAULT_MISSION,
+  type MissionRequest,
+  type MissionResult,
+  type Objective,
+} from "@/lib/types";
 import { MissionCanvas } from "../playground/mission-canvas";
 import { KpiStrip } from "./kpi-strip";
 import { LossSparkline } from "./loss-sparkline";
+import { CopilotPanel } from "./copilot-panel";
 import { Footer } from "../landing/footer";
 import { Navbar } from "../landing/navbar";
+
+const OBJECTIVES: { id: Objective; label: string }[] = [
+  { id: "balanced", label: "Balanced" },
+  { id: "max_collection", label: "Max collection" },
+  { id: "min_control_effort", label: "Min control effort" },
+];
 
 export function PlannerView() {
   const [form, setForm] = useState<MissionRequest>(DEFAULT_MISSION);
@@ -21,6 +34,7 @@ export function PlannerView() {
   const [playing, setPlaying] = useState(true);
   const [chromeHidden, setChromeHidden] = useState(false);
   const started = useRef(0);
+  const replayed = useRef(false);
 
   const maxFrame = Math.max(0, (mission?.random.trajectory.length ?? 1) - 1);
 
@@ -48,25 +62,48 @@ export function PlannerView() {
     return () => cancelAnimationFrame(raf);
   }, [mission, playing, status, maxFrame]);
 
-  async function onRun() {
+  async function execute(req: MissionRequest) {
+    setForm(req);
     setStatus("running");
     setError("");
     setElapsed(0);
     const t0 = performance.now();
     try {
-      const result = await runMission(form);
+      const result = await runMission(req);
       const wait = 900 - (performance.now() - t0);
       if (wait > 0) await new Promise((r) => setTimeout(r, wait));
       setMission(result);
       setFrame(0);
       setPlaying(true);
       setStatus("success");
-      saveMission(result.params, result.metrics);
+      saveMission(result.params, result.metrics, result.meta?.mission_id);
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "Could not run this mission.");
     }
   }
+
+  useEffect(() => {
+    if (replayed.current) return;
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (!id) return;
+    replayed.current = true;
+    let cancelled = false;
+    (async () => {
+      const local = loadMissions();
+      let row = findMission(id, local);
+      if (!row) {
+        row = findMission(id, mergeMissions(await fetchMissions(), local));
+      }
+      if (!row || cancelled) return;
+      await execute({ ...DEFAULT_MISSION, ...row.params });
+    })().catch(() => {
+      /* offline replay still uses mock via execute */
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function reset() {
     setMission(null);
@@ -114,8 +151,8 @@ export function PlannerView() {
               </p>
               <h1 className="font-display mt-1 text-4xl tracking-tight">Mission planner</h1>
               <p className="mt-2 max-w-xl text-sm text-muted">
-                Configure a fleet, run the differentiable solver, then scrub Harmony
-                against a random patrol on the same current field.
+                Configure a fleet, pick an objective, run the differentiable solver, then
+                scrub Harmony against a random patrol on the same current field.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -143,6 +180,43 @@ export function PlannerView() {
           <aside className="soft-card h-fit p-5">
             <p className="text-sm font-semibold">Mission request</p>
             <p className="mt-1 text-xs text-muted">Posted to `POST /mission` · tens of seconds on Lambda</p>
+
+            <p className="mt-4 text-[11px] tracking-[0.16em] text-muted uppercase">Objective</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {OBJECTIVES.map((opt) => {
+                const active = (form.objective ?? "balanced") === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className={`rounded-full px-3 py-1.5 text-[11px] font-semibold tracking-wide uppercase ${
+                      active
+                        ? "bg-accent text-white"
+                        : "border border-border bg-panel text-muted"
+                    }`}
+                    onClick={() => setForm((prev) => ({ ...prev, objective: opt.id }))}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <label className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-panel-2 px-3 py-2.5 text-xs">
+              <span>
+                <span className="font-medium text-foreground">Boundary penalty</span>
+                <span className="mt-0.5 block text-muted">Keep boats inside the domain</span>
+              </span>
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-[var(--accent)]"
+                checked={Boolean(form.boundary_penalty)}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, boundary_penalty: e.target.checked }))
+                }
+              />
+            </label>
+
             <div className="mt-4 space-y-3">
               {fields.map((f) => (
                 <label key={f.key} className="block text-xs">
@@ -169,7 +243,7 @@ export function PlannerView() {
               type="button"
               className="btn-primary mt-5 w-full justify-center disabled:opacity-50"
               disabled={status === "running"}
-              onClick={onRun}
+              onClick={() => execute(form)}
             >
               {status === "running" ? `Running · ${elapsed} ms` : "Run mission"}
             </button>
@@ -190,7 +264,7 @@ export function PlannerView() {
             {status === "error" && (
               <p className="mt-4 rounded-2xl bg-red-50 px-3 py-2 text-xs text-red-700 dark:bg-red-500/10 dark:text-red-200">
                 {error}{" "}
-                <button className="underline" type="button" onClick={onRun}>
+                <button className="underline" type="button" onClick={() => execute(form)}>
                   Retry
                 </button>
               </p>
@@ -199,11 +273,12 @@ export function PlannerView() {
             <div className="mt-6 space-y-3 rounded-2xl bg-panel-2 p-3 text-xs leading-5 text-muted">
               <p>
                 <strong className="text-foreground">Learn.</strong> Differentiable physics
-                unrolls RK4 advection, then backprops capture vs fuel through every hour.
+                unrolls RK4 advection, then backprops capture vs control effort through every
+                hour.
               </p>
               <p>
-                <strong className="text-foreground">Built on AWS.</strong> API Gateway +
-                Lambda container. The web app is a static export on S3 / CloudFront.
+                <strong className="text-foreground">History is in DynamoDB.</strong> Successful
+                runs persist server-side and mirror in this browser for offline replay.
               </p>
             </div>
           </aside>
@@ -212,10 +287,12 @@ export function PlannerView() {
             <div className="soft-card relative min-h-[480px] flex-1 overflow-hidden p-3">
               {status === "idle" && (
                 <div className="relative grid h-full min-h-[480px] place-items-center overflow-hidden rounded-[22px] px-8 text-center">
-                  <img
+                  <Image
                     src="/fleet.jpg"
                     alt=""
-                    className="absolute inset-0 h-full w-full object-cover opacity-35"
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 60vw"
+                    className="object-cover opacity-35"
                   />
                   <div className="absolute inset-0 bg-background/55 dark:bg-background/70" />
                   <div className="relative">
@@ -251,7 +328,7 @@ export function PlannerView() {
                     type="range"
                     min={0}
                     max={maxFrame}
-                    value={frame}
+                    value={Math.min(maxFrame, Math.floor(frame))}
                     onChange={(e) => {
                       setPlaying(false);
                       setFrame(Number(e.target.value));
@@ -262,6 +339,7 @@ export function PlannerView() {
                 <div className="soft-card p-5">
                   <LossSparkline history={mission.optimization_history} />
                 </div>
+                <CopilotPanel params={mission.params} metrics={mission.metrics} />
               </>
             )}
           </div>

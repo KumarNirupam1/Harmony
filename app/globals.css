@@ -56,19 +56,28 @@ body {
 
 body {
   background:
-    radial-gradient(1000px 480px at 50% -12%, rgba(39, 179, 255, 0.22), transparent 58%),
+    radial-gradient(
+      1000px 480px at 50% -12%,
+      rgba(39, 179, 255, 0.22),
+      transparent 58%
+    ),
     var(--background);
   font-family: var(--font-sans);
 }
 
 html.dark body {
   background:
-    radial-gradient(1100px 520px at 50% -12%, rgba(39, 179, 255, 0.18), transparent 58%),
+    radial-gradient(
+      1100px 520px at 50% -12%,
+      rgba(39, 179, 255, 0.18),
+      transparent 58%
+    ),
     var(--background);
 }
 
 .font-display {
-  font-family: var(--font-instrument), ui-serif, Georgia, "Times New Roman", serif;
+  font-family:
+    var(--font-instrument), ui-serif, Georgia, "Times New Roman", serif;
 }
 
 .btn-primary {
@@ -84,7 +93,9 @@ html.dark body {
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  transition: transform 160ms ease, background 160ms ease;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
 }
 
 .btn-primary:hover {

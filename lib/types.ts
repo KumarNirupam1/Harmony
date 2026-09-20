@@ -91,4 +91,6 @@ export const DEFAULT_MISSION: MissionRequest = {
   seed: 42,
   debris_count: 200,
   debris_spread: 15,
+  objective: "balanced",
+  boundary_penalty: false,
 };

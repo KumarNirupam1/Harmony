@@ -9,6 +9,8 @@ field and watch the numbers move.
 Built for **First Commit | Bharat Builds Tour** (WeMakeDevs × AWS) — Team Titan
 (Team code `BP57CZ`).
 
+Live demo: [https://d32eo4z8j4qsxd.cloudfront.net](https://d32eo4z8j4qsxd.cloudfront.net)
+
 ```
 Web (Next.js static export, S3 + CloudFront)
         │  POST /mission            GET /api/missions
