@@ -145,3 +145,32 @@ html.dark .cta-band {
   background: var(--panel-2);
   border: 1px solid var(--border);
 }
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: var(--draw, 1200);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.chart-draw {
+  stroke-dasharray: var(--draw, 1200);
+  animation: draw-line 1.5s cubic-bezier(0.25, 0.7, 0.3, 1) forwards;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise-in {
+  animation: rise-in 0.6s cubic-bezier(0.25, 0.7, 0.3, 1) both;
+}

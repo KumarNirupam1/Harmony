@@ -68,12 +68,14 @@ export type MissionResult = {
   params: MissionRequest;
   field: VelocityField;
   domain: { x_max: number; y_max: number };
+  initial_vessels?: number[][];
   random: StrategyResult;
   optimized: StrategyResult;
   metrics: MissionMetrics;
   optimization_history: OptimizationStep[];
   meta: MissionMeta;
   debris: number[][];
+  engine?: "backend" | "synthetic";
 };
 
 export type SavedMissionSummary = {

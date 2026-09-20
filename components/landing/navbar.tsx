@@ -29,9 +29,9 @@ export function Navbar() {
             <a className="hover:text-foreground" href="#how">
               How it works
             </a>
-            <a className="hover:text-foreground" href="#stack">
-              AWS
-            </a>
+            <Link className="hover:text-foreground" href="/architecture">
+              Architecture
+            </Link>
           </nav>
         )}
 

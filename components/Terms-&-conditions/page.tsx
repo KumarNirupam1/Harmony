@@ -5,7 +5,7 @@ export default function Terms() {
     return (
         <div className="flex min-h-full flex-1 flex-col bg-background">
             <Navbar />
-            <main className="mx-auto w-full max-w-2xl flex-1 px-6 pt-20 pb-16">
+            <main className="mx-auto w-full max-w-2xl flex-1 px-6 pt-24 pb-16">
                 <p className="text-[11px] font-semibold tracking-[0.24em] text-accent uppercase">
                     Legal
                 </p>

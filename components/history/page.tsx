@@ -48,7 +48,7 @@ export default function History() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-background">
       <Navbar />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-6 pt-20 pb-16">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-6 pt-24 pb-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold tracking-[0.24em] text-accent uppercase">

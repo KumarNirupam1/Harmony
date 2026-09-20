@@ -53,12 +53,16 @@ export async function runMission(body: MissionRequest): Promise<MissionResult> {
     if (!data.debris?.length) {
       data.debris = generateMockMission(body).debris;
     }
+    data.engine = "backend";
+    data.initial_vessels ??= data.random.trajectory[0];
     return data;
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("mission failed")) {
       throw error;
     }
-    return generateMockMission(body);
+    const mock = generateMockMission(body);
+    mock.engine = "synthetic";
+    return mock;
   }
 }
 

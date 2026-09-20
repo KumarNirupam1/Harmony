@@ -58,37 +58,77 @@ export function KpiStrip({
   const gain = useCount(efficiency_gain, active);
   const saved = useCount(control_effort_saved_pct, active);
 
+  const recoveredBar = total_debris > 0 ? (optimized_collected / total_debris) * 100 : 0;
+  const savedBar = Math.max(0, Math.min(100, control_effort_saved_pct));
+
   const cards = [
     {
       label: "Debris recovered",
-      value: `${Math.round(rec)} / ${total_debris}`,
-      sub: `Random patrol ${Math.round(randRec)}`,
+      value: `${Math.round(rec)}`,
+      unit: `/ ${total_debris}`,
+      sub: total_debris > 0 ? `${recoveredBar.toFixed(0)}% of the cloud` : "versus random",
+      bar: total_debris > 0 ? recoveredBar : 40,
+      barColor: "var(--success)",
+      compare: [
+        `random ${Math.round(randRec)}`,
+        optimized_collected - random_collected >= 0 ? "better" : "worse",
+      ],
     },
     {
-      label: "Control effort",
-      value: Math.round(effort).toString(),
-      sub: `Random ${Math.round(randEffort)} · saved ${saved.toFixed(0)}%`,
+      label: "Effort saved",
+      value: `${saved.toFixed(0)}`,
+      unit: "%",
+      sub: `vs random ${Math.round(randEffort)} thrust`,
+      bar: savedBar,
+      barColor: "var(--accent)",
+      compare: [`optimized ${Math.round(effort)}`, "less burn"],
     },
     {
       label: "Efficiency gain",
-      value: `${gain >= 0 ? "+" : ""}${gain.toFixed(1)}%`,
-      sub: "The money shot vs random patrol",
+      value: `${gain >= 0 ? "+" : ""}${gain.toFixed(1)}`,
+      unit: "%",
+      sub: "capture per unit of thrust",
+      bar: Math.max(0, Math.min(100, gain * 2.5)),
+      barColor: "var(--accent)",
+      compare: coverage_pct > 0 ? [`${coverage_pct.toFixed(1)}% swept`, "domain coverage"] : [],
       accent: true,
     },
   ];
 
   return (
-    <div>
+    <div className="rise-in">
       <div className="grid gap-3 sm:grid-cols-3">
-        {cards.map((c) => (
-          <div key={c.label} className="soft-card px-5 py-4">
-            <p className="text-[11px] tracking-[0.16em] text-muted uppercase">{c.label}</p>
-            <p
-              className={`mt-1 font-display text-3xl ${c.accent ? "text-accent" : "text-foreground"}`}
-            >
+        {cards.map((c, i) => (
+          <div
+            key={c.label}
+            className="soft-card animate-[rise-in_0.6s_cubic-bezier(0.25,0.7,0.3,1)_both] px-5 py-4"
+            style={{ animationDelay: `${i * 90}ms` }}
+          >
+            <div className="flex items-baseline justify-between">
+              <p className="text-[11px] tracking-[0.16em] text-muted uppercase">{c.label}</p>
+              {c.compare[1] && (
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${c.compare[1] === "better" || c.compare[1] === "less burn" ? "bg-[var(--success)]/15 text-[var(--success)]" : "bg-[var(--destructive)]/15 text-[var(--destructive)]"}`}
+                >
+                  {c.compare[1]}
+                </span>
+              )}
+            </div>
+            <p className="mt-1 font-display text-3xl tracking-tight text-foreground">
               {c.value}
+              <span className="ml-0.5 text-sm text-muted">{c.unit}</span>
             </p>
-            <p className="mt-1 text-xs text-muted">{c.sub}</p>
+            <p className="mt-0.5 text-xs text-muted">{c.sub}</p>
+            <div className="mt-3 h-1 overflow-hidden rounded-full bg-[var(--border)]">
+              <div
+                className="h-full rounded-full transition-[width] duration-700 ease-out"
+                style={{
+                  width: active ? `${c.bar}%` : "0%",
+                  background: c.barColor,
+                  transitionDelay: `${i * 90}ms`,
+                }}
+              />
+            </div>
           </div>
         ))}
       </div>

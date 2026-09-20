@@ -92,7 +92,6 @@ export function HowItWorks() {
                 <p className="text-[10px] tracking-widest text-accent uppercase">Baseline</p>
                 <p className="text-xs font-medium">Random patrol vs learned route</p>
               </div>
-              <div className="h-10 w-14 rounded-lg bg-gradient-to-br from-accent-2 to-accent" />
             </div>
           </div>
           <h3 className="mt-6 text-lg font-semibold">Optimize the controls</h3>

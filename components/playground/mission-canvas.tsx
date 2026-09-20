@@ -215,6 +215,20 @@ export function MissionCanvas({ mission, frame, className }: Props) {
       drawMarker(random.trajectory, "#c4924a");
       drawMarker(optimized.trajectory, "#27b3ff");
 
+      const launches = mission.initial_vessels ?? random.trajectory[0];
+      if (launches?.length) {
+        for (const p of launches) {
+          const [cx, cy] = worldToCanvas(p[0], p[1], w, h, xmax, ymax);
+          ctx.beginPath();
+          ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(255,255,255,0.95)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(39, 179, 255, 0.85)";
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+        }
+      }
+
       ctx.strokeStyle = "rgba(255,255,255,0.12)";
       ctx.strokeRect(28, 28, w - 56, h - 56);
 
@@ -253,6 +267,10 @@ export function MissionCanvas({ mission, frame, className }: Props) {
         <div className="mt-1 flex items-center gap-2">
           <span className="inline-block h-1 w-1 rounded-full bg-white/70" />
           Debris
+        </div>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="inline-block h-2 w-2 rounded-full border border-[#27b3ff] bg-white" />
+          Launch points
         </div>
       </div>
       <div className="pointer-events-none absolute right-4 bottom-4 rounded-md border border-white/10 bg-black/40 px-2.5 py-1 font-mono text-[11px] text-white/80 backdrop-blur-md">
