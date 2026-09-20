@@ -348,13 +348,13 @@ export function PlannerView() {
                 a route that beats a random patrol on the same gyre.
               </p>
             </div>
-            <button
+            {/* <button
               type="button"
               className="btn-ghost"
               onClick={() => setChromeHidden((c) => !c)}
             >
               {chromeHidden ? "Show chrome" : "Hide chrome"}
-            </button>
+            </button> */}
           </div>
         )}
 
